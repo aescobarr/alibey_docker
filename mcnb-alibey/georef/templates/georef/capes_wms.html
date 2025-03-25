@@ -1,0 +1,121 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" >
+    <style>
+        td {
+            width: 250px;
+        }
+        #fileuploader {
+            margin-left: 70px;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var _create_wms_url = "{% url 'wmslocal_create' %}";
+        var _delete_wms_url = "{% url 'wmslocal_delete_noparam' %}";
+        var _capawmslocal_list_url = "{% url 'capeswmslocals_datatable_list' %}";
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+{% endblock %}
+{% block main %}
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                    <li class="breadcrumb-item">{% trans 'Recursos cartogràfics' %}</li>
+                    <li class="breadcrumb-item active">{% trans 'Càrrega de capes WMS pròpies' %}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="container separador_seccio">
+            <p><strong>{% trans 'Càrrega de capes WMS pròpies' %}:</strong></p>
+        </div>
+        <div class="container">
+            <p>
+                {% trans 'wms_layers_help_text' %}
+                <a href="{% url 'prefsvisualitzaciowms' %}">{% trans 'Preferències visualització capes WMS' %}</a>
+                <!--
+                Aquesta utilitat serveix per carregar capes pròpies en un servidor de cartografia local. Aquest servidor
+                de cartografia fa disponibles les capes en un format WMS, de manera que es poden mostrar a la majoria de
+                controls Mapa de dins de l'aplicació.
+                Un cop carregada una capa, està desactivada per defecte. Si vols tenir-la disponible, vés a
+                <a href="{% url 'prefsvisualitzaciowms' %}">Preferències visualització capes WMS</a>
+                -->
+            </p>
+            <p style="color: red;">
+                {% trans 'wms_layers_help_text_warning' %}
+                <!-- És important que les capes, tant ràster com shapefile, estiguin en projecció WGS84. -->
+            </p>
+            <p>
+            {% trans 'Segueix aquests passos per crear una capa WMS' %}:
+                <ol>
+                    <li>{% trans 'Escriu el nom de la capa' %}</li>
+                    <li>{% trans 'Importar shapefile' %}</li>
+                    <li>{% trans 'Crear capa WMS' %}</li>
+                </ol>
+            </p>
+        </div>
+        <div class="container">
+            <table>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            <label for="id_nomcapa">{% trans 'Nom de la capa' %}:</label>
+                            <input name="nomcapa" class="form-control" id="id_nomcapa" required="true" type="text">
+                        </div>
+                    </td>
+                    <td>
+                        <!--<div id="fileuploader"></div>-->
+                        <div>
+                            <input type="file" id="fileInput">
+                            <label for="fileInput" class="custom-file-upload">Importar shapefile (zip) o *.tiff</label>
+                            <p id="message"></p>
+                        </div>
+                    </td>
+                    <td>
+                        <input data-toggle="tooltip" data-placement="right" id="btnCreaCapa" role="button" class="btn btn-success" value="{% trans 'Crear capa WMS' %}" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+<!--        <div class="container">-->
+<!--            <div class="row">-->
+<!--                <div class="col-xs-6">-->
+<!--                    <div class="form-group">-->
+<!--                        <label for="id_nomcapa">{% trans 'Nom de la capa' %}:</label>-->
+<!--                        <input name="nomcapa" class="form-control" id="id_nomcapa" required="true" type="text">-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col-xs-6">-->
+<!--                    <div id="fileuploader"></div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="container">-->
+<!--            <div class="row">-->
+<!--                <div class="col-xs-2">-->
+<!--                    <input data-toggle="tooltip" data-placement="right" id="btnCreaCapa" role="button" class="btn btn-success" value="{% trans 'Crear capa WMS' %}" />-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div class="container separador_seccio">
+            <table id="capeswmslocal" style="width:100%;"></table>
+        </div>
+    </main>
+    <input id="filename" name="filename" type="hidden" value=""/>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/cookies.js'%}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js'%}?{{ revision }}"></script>    
+    <script src="{% static 'georef/javascript/capes_wms.js' %}?{{ revision }}"></script>
+{% endblock %}

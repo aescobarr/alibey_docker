@@ -1,0 +1,88 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">    
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var csrf_token = '{{ csrf_token }}';
+        var _import_csv_url = "{% url 'import_toponims' %}";
+        var _url_base_edit_toponim = "{% url 'import_toponims' %}";
+    </script>
+{% endblock %}
+{% block main %}
+    <main>
+      <div class="page-header">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                <li class="breadcrumb-item">{% trans 'Utilitats' %}</li>
+                <li class="breadcrumb-item active">{% trans 'Importació de topònims' %}</li>
+            </ol>
+        </div>
+      </div>
+        <div class="container separador_seccio">
+            <p><strong>{% trans "Utilitat d'importació de topònims des de CSV" %}:</strong></p>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <p>{% trans "Aquesta eina permet importar topònims des d'un fitxer csv." %}</p>
+                    <!--<button data-toggle="tooltip" title="{% trans 'Detalls' %}" id="details" type="button" class="btn btn-primary">{% trans "Explica'm més..." %}</button>-->
+                    <div class="persiana">
+                        {% trans 'toponym_import_help' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 separador_seccio">
+                    <!--<div id="fileuploader"></div>-->
+                    <div>
+                        <input type="file" id="fileInput">
+                        <label for="fileInput" class="custom-file-upload">Pujar fitxer</label>
+                        <p id="message"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="errors" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row" id="resultatcerca">
+                <div class="col-md-12">
+                    <table id="sumari" class="toponimsimportats table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                    <table id="creats" class="toponimsimportats table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                    <table id="existents" class="toponimsimportats table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                    <a id="linkDescarrega" href=""></a>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'georef/javascript/cookies.js'%}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js'%}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/utils.js'%}?{{ revision }}"></script>
+    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="{% static 'georef/javascript/toponims_import.js' %}?{{ revision }}"></script>
+{% endblock %}

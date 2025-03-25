@@ -1,0 +1,87 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+<link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+<!--<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/deltoss/d3-mitch-tree@1.0.2/dist/css/d3-mitch-tree.min.css">-->
+<link rel="stylesheet" type="text/css" href="{% static 'georef/javascript/d3-mitch-tree/css/d3-mitch-tree.min.css' %}">
+<!--<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/deltoss/d3-mitch-tree@1.0.2/dist/css/d3-mitch-tree-theme-default.min.css">-->
+<link rel="stylesheet" type="text/css" href="{% static 'georef/javascript/d3-mitch-tree/css/d3-mitch-tree-theme-default.min.css' %}">
+<style>
+    hr {
+        border-top: 2px solid black;
+    }
+    .d3plus-textBox text {
+        font-size: 10px !important;
+    }
+    #visualisation{
+        border-style: solid;
+    }
+</style>
+{% endblock %}
+{% block extrahead %}
+<script>
+    var toponims_georeferenciador = JSON.parse('{{ toponims_georeferenciador | escapejs }}');
+    //var toponims_pais = JSON.parse('{{ toponims_pais | escapejs }}');
+    var toponims_tipus = JSON.parse('{{ toponims_tipus | escapejs }}');
+    var toponims_aquatic = JSON.parse('{{ toponims_aquatic | escapejs }}');
+    var recursos_tipus = JSON.parse('{{ recursos_tipus | escapejs }}');
+    var estats_count = JSON.parse('{{ estats_count | escapejs }}');
+</script>
+{% endblock %}
+{% block main %}
+<main>
+    <div class="page-header">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                <li class="breadcrumb-item">{% trans 'Gràfiques' %}</li>
+            </ol>
+        </div>
+    </div>
+    <div class="container">
+        <table id="element_list" style="width:100%;"></table>
+    </div>
+
+    <div class="container">
+        <ul class="nav nav-pills" id="myTab" role="tablist">
+          <li class="nav-item active">
+            <a class="nav-link active" id="toponims_georef_tab" data-toggle="tab" href="#toponims_georef" role="tab" aria-selected="true" aria-expanded="true">{% trans 'toponims_georef' %}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="toponims_tipus_tab" data-toggle="tab" href="#toponims_tipus" role="tab" aria-selected="false">{% trans 'toponims_tipus' %}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="toponims_humitat_tab" data-toggle="tab" href="#toponims_per_humitat" role="tab" aria-selected="false">{% trans 'toponims_humitat' %}</a>
+          </li>
+            <li class="nav-item">
+                <a class="nav-link" id="recursos_per_tipus_tab" data-toggle="tab" href="#recursos_per_tipus" role="tab" aria-selected="false">{% trans 'recursos_tipus' %}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="toponims_estat_tab" data-toggle="tab" href="#toponims_estat" role="tab" aria-selected="false">{% trans 'Número de topònims per estat' %}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="estats_tab" data-toggle="tab" href="#estats" role="tab" aria-selected="false">{% trans 'estats' %}</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade fad in active" id="toponims_georef" role="tabpanel" aria-labelledby="toponims_georef_tab"><hr><div id="toponims_per_georeferenciador"></div></div>
+            <div class="tab-pane fade" id="toponims_tipus" role="tabpanel" aria-labelledby="toponims_tipus_tab"><hr><div id="toponims_per_tipus"></div></div>
+            <div class="tab-pane fade" id="toponims_per_humitat" role="tabpanel" aria-labelledby="toponims_humitat_tab"><hr><div id="toponims_humitat"></div></div>
+            <div class="tab-pane fade" id="recursos_per_tipus" role="tabpanel" aria-labelledby="recursos_per_tipus"><hr><div id="recursos_tipus"></div></div>
+            <div class="tab-pane fade" id="toponims_estat" role="tabpanel" aria-labelledby="toponims_estat"><hr><div id="toponims_estat_graph"></div></div>
+            <div class="tab-pane fade" id="estats" role="tabpanel" aria-labelledby="estats"><hr><div id="state_sunburst"><section id="visualisation"></section></div></div>
+        </div>
+    </div>
+
+</main>
+{% endblock %}
+{% block extra_js %}
+    <!--<script src="https://cdn.jsdelivr.net/gh/deltoss/d3-mitch-tree@1.0.2/dist/js/d3-mitch-tree.min.js"></script>-->
+    <script src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'georef/javascript/d3-mitch-tree/js/d3-mitch-tree.min.js' %}"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js' %}"></script>
+    <script src="{% static 'georef/javascript/graphs.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/d3graph.js' %}?{{ revision }}"></script>
+{% endblock %}

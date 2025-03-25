@@ -1,0 +1,246 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet/leaflet.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/css/styledLayerControl.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/leaflet.draw.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">    
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.Coordinates-master/dist/Leaflet.Coordinates-0.1.5.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/leaflet-sidebar-v2/leaflet-sidebar.css' %}" rel="stylesheet">
+    <style>
+        table#recursos_list.dataTable.no-footer tbody tr td {
+            font-size: 10px;
+        }
+        table#taulafiltre tbody tr td {
+            font-size: 10px;
+        }
+        table#taulafiltre tr td {
+            font-size: 10px;
+        }
+        html body main div.container div.wrapper.clear_blue table#taulafiltre tr td select.input-field{
+            font-size: 10px;
+        }
+        .btn.btn-primary{
+            font-size: 10px;
+        }
+        .btn.btn-danger{
+            font-size: 10px;
+        }
+        .dataTables_paginate.paging_full_numbers{
+            font-size: 9px;
+        }
+        .dataTables_filter{
+            font-size: 10px;
+        }
+        .dataTables_info{
+            font-size: 10px;
+        }
+        .qq-upload-button.ui-widget-content.ui-button.ui-corner-all.ui-state-default span{
+            font-size: 10px;
+        }
+        #map {
+            margin-top: 10px;
+            height: 700px;
+        }
+        .collapsed{
+            height: 45px;
+        }
+        .navbar {
+	        margin-bottom: 0px;
+        }
+        select.select-taula{
+            width: 100%;
+            max-width: 150px;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _recurs_list_url = "{% url 'recursos_datatable_list' %}";
+        var _recurs_delete_url = "{% url 'recursgeoref-list' %}";
+        var _filtres_list_url = "{% url 'filtres-list' %}";
+        var _filtres_delete_url = "{% url 'filtres-list' %}";
+        var _filtres_update_url = "{% url 'filtres-list' %}";
+        var _filtres_create_url = "{% url 'filtres-list' %}";
+        var _check_filtre_url = "{% url 'check_filtre' %}";
+        var wms_url = "{{ wms_url }}";
+        var _import_shapefile_url = "{% url 'process_shapefile' %}";
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var csrf_token = '{{ csrf_token }}';
+        var _recursos_list_xls = "{% url 'recursos_list_xls' %}";
+        var _recursos_list_csv = "{% url 'recursos_list_csv' %}";
+        var _recursos_list_pdf = "{% url 'recursos_list_pdf' %}";
+
+        var wmslayers = JSON.parse('{{ wmslayers | escapejs }}');
+
+    </script>
+{% endblock %}
+{% block main %}
+<main>
+        <!---
+        <div class="page-header">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans "Inici" %}</a></li>
+                    <li class="breadcrumb-item">{% trans "Recursos" %}</li>
+                    <li class="breadcrumb-item active">{% trans "Llistat" %}</li>
+                </ol>
+            </div>
+        </div>
+        --->
+    <div id="dialog-confirm" title="{% trans 'Confirmar sobreescriure filtre' %}" style="display:none;">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>{% trans 'msg_warn_overwrite_filter' %}</p>
+    </div>
+    <div class="container">
+    </div>
+    <div class="container-fluid">
+        <div id="map" class="sidebar-map">
+            <div id="sidebar" class="sidebar collapsed">
+            <div class="sidebar-tabs">
+                <ul role="tablist">
+                    <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                </ul>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-pane" id="home">
+                    <h1 class="sidebar-header">{% trans 'Recursos' %}<span class="sidebar-close"><i class="fa fa-caret-right"></i></span></h1>
+                    <div class="col-xs-12" style="height:25px;"></div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <a class="imatge_xls" href="#" title="{% trans 'Exportar a xls' %}" onclick="javascript:exportXLS(); return false;"></a>
+                            <a class="imatge_csv" href="#" title="{% trans 'Exportar a csv' %}" onclick="javascript:exportCSV(); return false;"></a>
+                            <a class="imatge_pdf" href="#" title="{% trans 'Exportar a pdf' %}" onclick="javascript:exportPDF(); return false;"></a>
+                        </div>
+                    </div>
+                    <div class="wrapper clear_blue">
+                        <button data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_add_condicio' %}" id="addCondicio" type="button" class="btn btn-primary">{% trans "Afegir condició" %} <i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <table id="taulafiltre">
+                            <tbody>
+                                <tr>
+                                    <td><strong>{% trans "Operador" %}</strong></td>
+                                    <td><strong>{% trans "NOT" %}</strong></td>
+                                    <td><strong>{% trans "Condició" %}</strong></td>
+                                    <td><strong>{% trans "Valor" %}</strong></td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row container no_side_margin">
+                            <button data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_filter' %}" id="doFilter" type="button" class="btn btn-primary">{% trans "Filtrar" %} <i class="fa fa-filter" aria-hidden="true"></i></button>
+                            <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_clear_filter' %}" id="doClear" type="button" class="btn btn-danger">{% trans "Netejar filtre" %} <i class="fa fa-close" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="row container no_side_margin">
+                            <label class="iconainfo" data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_filter_load' %}" for="saveDoFilter">{% trans "Carregar filtre" %}</label>
+                            <input id="autoc_filtres" type="text">
+                            {% if user.profile.is_admin or user.profile.can_edit_filtre or user.is_superuser %}
+                            <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_filter_save' %}" id="saveDoFilter" type="button" class="btn btn-primary">{% trans "Desar i filtrar" %} <i class="fa fa-thumb-tack" aria-hidden="true"></i><i class="fa fa-filter" aria-hidden="true"></i></button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if user.profile.is_admin or user.profile.can_edit_recurs or user.is_superuser %}
+                        <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_add_resource' %}" id="addRecurs" type="button" class="btn btn-primary">{% trans "Afegir" %} <i class="fa fa-plus" aria-hidden="true"></i></button>
+                        {% endif %}
+                        <table id="recursos_list" style="width:100%;"></table>
+                    </div>
+                </div> <!-- sidebar-pane -->
+            </div> <!-- sidebar-content -->
+        </div> <!-- sidebar -->
+        </div>
+    </div>
+    <div class="container-fluid">        
+        <input type="file" id="fileInput">
+        <label for="fileInput" class="custom-file-upload">Importar shapefile</label>
+        <p id="message"></p>
+    </div>
+</main>
+{% endblock %}
+{% block extra_js %}
+    <script>
+        var table;
+        var indexTaula = 0;
+
+        var valorsOperadors = new Array();
+        valorsOperadors[0] = {id : "and", value : "AND"};
+        valorsOperadors[1] = {id : "or", value : "OR" };
+
+        var valorsCondicions = new Array();
+        valorsCondicions[0] = {id : "nom",value : "{% trans 'Nom' %}"};
+        valorsCondicions[1] = {id : "acronim",value : "{% trans 'Acrònim' %}"};
+        valorsCondicions[2] = {id : "paraulaclau",value : "{% trans 'Paraula clau' %}"};
+        valorsCondicions[3] = {id : "tipus",value : "{% trans 'Tipus' %}"};
+        //valorsCondicions[4] = {id : "geografic",value : "{% trans 'Geogràfic (límits capes WMS associades)' %}"};
+        valorsCondicions[4] = {id : "geografic_geo",value : "{% trans 'Geogràfic (elements digitalitzats)' %}"};
+
+        var valorsTipus = new Array();
+        {% for tipus in llista_tipus %}
+            valorsTipus.push({id:"{{ tipus.id }}",value:"{{ tipus.nom }}"});
+        {% endfor %}
+
+        var editableLayers;
+        var controlCapes;
+
+        {% if messages %}
+            {% for message in messages %}
+                toastr.success("{{ message }}");
+            {% endfor %}
+        {% endif %}
+
+    </script>
+    <script src="{{ google_maps }}" async defer></script>
+    <script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet/leaflet.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.GridLayer.GoogleMutant/Leaflet.GoogleMutant.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/src/styledLayerControl.js' %}"></script>
+
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.Draw.Event.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Toolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Tooltip.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/GeometryUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LatLngUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LineUtil.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polygon.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polyline.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/TouchEvents.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/DrawToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Feature.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polyline.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polygon.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/EditToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Edit.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Delete.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Control.Draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Poly.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Coordinates-master/dist/Leaflet.Coordinates-0.1.5.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/leaflet-sidebar-v2/leaflet-sidebar.js' %}"></script>
+    <script src="{% static 'georef/javascript/OpenLayers2.12.js' %}"></script>
+    <script src="{% static 'georef/javascript/wicket.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/cookies.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/filtre_recursos.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/filtrecql_recursos.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/recursos_list.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/leaflet-bing-layer.min.js' %}"></script>
+    <script>
+        var bing_key = '{{ bing }}';
+    </script>
+    <script src="{% static 'georef/javascript/djangoref_map.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/file_uploader.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/init_llista_recursos.js' %}?{{ revision }}"></script>
+    <!--<script src="{% static 'georef/javascript/leaflet_map_editable.js' %}"></script>-->
+{% endblock %}

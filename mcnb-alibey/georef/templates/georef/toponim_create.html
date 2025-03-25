@@ -1,0 +1,120 @@
+  {% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
+    <link href="{% static 'jstree/dist/themes/default/style.min.css' %}" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+    <style>
+        .dwc_link{
+            font-size: x-small;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var node_list_full = {{ nodelist_full|safe }};
+        var node_list = [];
+        for(var i = 0; i < node_list_full.length; i++){
+            node_list.push(node_list_full[i].split('$')[0]);
+        }
+        var node_ini = "{{ node_ini }}";
+    </script>
+    <script>
+        var wms_url = "{{ wms_url }}";
+        var _toponim_node_search_url = "{% url 'toponimnodesearch' %}";
+        var _ajax_check_name = "{% url 'check_site_name' %}";
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+{% endblock %}
+{% block main %}
+<main>
+    <div class="page-header">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                <li class="breadcrumb-item">{% trans 'Topònims' %}</li>
+                <li class="breadcrumb-item active">{% trans "Afegir nou topònim" %}</li>
+            </ol>
+        </div>
+    </div>
+    <div class="container">
+        <form id="site_form" action="{% url 'toponims_create' %}" method="post">
+            {% csrf_token %}
+            <div class="container">
+                <a role="button" class="btn btn-success" href="{% url 'toponims' %}">{% trans 'Cancel·lar' %}</a>
+                <input id="create_site" role="button" class="btn btn-success" type="submit" value="{% trans 'Desar' %}" />
+            </div>
+            <div class="container separador_seccio">
+                <p><strong>{% trans 'Dades bàsiques' %}:</strong></p>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <table id="toponim_edit">
+                            <tr>
+                                <th><label for="{{ form.nom.id_for_label }}">{% trans 'Nom' %}:</label> <a class="dwc_link" href="https://dwc.tdwg.org/terms/#dwc:locality" target="_blank">dwc:locality</a> </th>
+                                <td>{{ form.nom }}</td>
+                                <td>{{ form.nom.errors }}</td>
+                            </tr>
+                            <tr>
+
+                            </tr>
+                            <tr>
+                                <th><label for="{{ form.idtipustoponim.id_for_label }}">{% trans 'Tipus' %}:</label></th>
+                                <td>{{ form.idtipustoponim }}</td>
+                                <td>{{ form.idtipustoponim.errors }}</td>
+                            </tr>
+                            <tr>
+                                <th><label for="{{ form.aquatic.id_for_label }}">{% trans 'Aquàtic' %}?:</label></th>
+                                <td>{{ form.aquatic }}</td>
+                                <td>{{ form.aquatic.errors }}</td>
+                            </tr>
+                            <tr>
+                                <th><label for="{{ form.sinonims.id_for_label }}">{% trans 'Sinònims' %}:</label></th>
+                                <td>{{ form.sinonims }}</td>
+                                <td>{{ form.sinonims.errors }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{ form.idpare.as_hidden }}
+                    {{ form.idpare.errors }}
+                    <div class="col-sm-6">
+                        <label id="seleccio">{% trans 'Seleccionat: cap' %}</label>
+                        </br>
+                        <div id="ariadna"><ul></ul></div>
+                        <div><label class="iconainfo" data-toggle="tooltip" data-placement="left" title="{% trans 'node_search_tooltip' %}" for="autoc_tree">&nbsp;</label><input id="autoc_tree" type="text" value=""><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
+                        <label>{% trans 'Topònim pare' %}:</label> <a class="dwc_link" href="https://dwc.tdwg.org/terms/#dwc:higherGeography" target="_blank">dwc:higherGeography</a>
+                        <div class="scroll_jstree" id="jstree"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+<div id="dialog-confirm" title="{% trans 'Atenció, segur que vols crear el topònim?' %}" style="display:none;">
+    <p>
+        <span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>{% trans 'Els següents topònims tenen un nom similar:' %}
+    </p>
+    <p>
+        <ul id="similar_list"></ul>
+    </p>
+</div>
+<div id="dialog-error" title="{% trans 'Hi ha errors al formulari' %}" style="display:none;">
+    <p>
+        <span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>{% trans 'Si us plau, corregeix el següent:' %}
+    </p>
+    <p>
+        <ul id="error_list"></ul>
+    </p>
+</div>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'jstree/dist/jstree.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/tree_util.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/toponim_create_templates.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/toponim_create.js' %}?{{ revision }}"></script>
+{% endblock %}
+{% block outside_body %}
+{% endblock %}

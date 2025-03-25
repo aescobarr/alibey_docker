@@ -1,0 +1,140 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" >
+    <style>
+        #val_x, #val_y, #val_inc{
+            height: 25px;
+        }
+        .qq-upload-button {
+            width: 150px;
+        }
+        .results_container {
+            display: flex;
+            flex-direction: column;
+        }
+        .row_result_container {
+            display: flex;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        #label_x, #label_y, #label_inc {
+            width: 160px;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var _compute_centroid_url = "{% url 'compute_shapefile_centroid_noparams' %}";
+        var csrf_token = '{{ csrf_token }}';
+    </script>
+{% endblock %}
+{% block main %}
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                    <li class="breadcrumb-item">{% trans 'Utilitats' %}</li>
+                    <li class="breadcrumb-item active">{% trans 'Calcula centroides' %}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="container separador_seccio">
+            <p><strong>{% trans 'Càlcul de centroides' %}:</strong></p>
+        </div>
+        <div class="container">
+            {% trans 'centroid_calc_help' %}
+            <!--
+            <p>Aquesta eina pren com a entrada un fitxer shapefile i en calcula el centroide i la incertesa de coordenades.</p>
+            <p>Cal que el fitxer d'entrada sigui un shapefile comprimit en un zip. Altres consideracions que cal tenir en compte:</p>
+            <ul>
+                <li>El fitxer zip ha de contenir tots els fitxers del shapefile al primer nivell. No es suporten subcarpetes.</li>
+                <li>Cal que el shapefile estigui en el sistema de referència EPSG:4326.</li>
+                <li>Els atributs que tingui el fitxer shapefile són ignorats. La única cosa que intervé en el càlcul és la geometria.</li>
+                <li>La incertesa de coordenades es calcula com el punt més allunyat de la corba del polígon, contant des del centroide. Si la geometria conté múltiples polígons, aquests es fusionen i es considera la geometria resultant com un sol polígon.</li>
+                <li>Depenent de la mida i complexitat del fitxer, el procés pot trigar una mica.</li>
+            </ul>
+            -->
+            <p>{% trans 'Depenent de la mida i complexitat del fitxer, el procés pot trigar una mica' %}.</p>
+        </div>
+        <div class="container separador_seccio">
+            <!--<div class="row">
+                <div class="col-xs-2 col-xs-offset-2">
+                    <button data-toggle="tooltip" title="{% trans 'Copiar resultats al portapapers' %}" id="clipboard" type="button" class="btn btn-primary"><i class="fa fa-clipboard" aria-hidden="true"></i></button>
+                </div>
+            </div>-->
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-2">
+                    <div id="fileuploader"></div>
+                </div>
+                <div id="info_block" class="col-xs-10" style="display:none;">
+                    <div class="results_container">
+                        <div class="row_result_container">
+                            <button data-toggle="tooltip" title="{% trans 'Copiar resultats al portapapers' %}" id="clipboard" type="button" class="btn btn-primary"><i class="fa fa-clipboard" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="row_result_container">
+                            <span id="label_x" class="label label-primary">{% trans 'Coordenada x centroide (long)' %}: </span>
+                            <div id="val_x" class="col-xs-6"></div>
+                        </div>
+                        <div class="row_result_container">
+                            <span id="label_y" class="label label-primary">{% trans 'Coordenada y centroide (lat)' %}: </span>
+                            <div id="val_y" class="col-xs-6"></div>
+                        </div>
+                        <div class="row_result_container">
+                            <span id="label_inc" class="label label-primary">{% trans 'Radi incertesa (m)' %}: </span>
+                            <div id="val_inc" class="col-xs-6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="row">
+                <div class="col-xs-2">
+                    <div id="fileuploader"></div>
+                </div>
+                <div class="col-xs-10">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <span id="label_x" class="label label-primary">{% trans 'Coordenada x centroide (long)' %}: </span>
+                        </div>
+                        <div id="val_x" class="col-xs-6"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <span id="label_y" class="label label-primary">{% trans 'Coordenada y centroide (lat)' %}: </span>
+                        </div>
+                        <div id="val_y" class="col-xs-6"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <span id="label_inc" class="label label-primary">{% trans 'Radi incertesa (m)' %}: </span>
+                        </div>
+                        <div id="val_inc" class="col-xs-6"></div>
+                    </div>
+                </div>
+            </div>-->
+        </div>
+        <div class="container">        
+            <input type="file" id="fileInput">
+            <label for="fileInput" class="custom-file-upload">Importar shapefile (zip)</label>
+            <p id="message"></p>
+        </div>
+    </main>    
+    <input id="filename" name="filename" type="hidden" value=""/>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/cookies.js'%}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js'%}?{{ revision }}"></script>
+    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="{% static 'georef/javascript/utils.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/calculcentroides.js' %}?{{ revision }}"></script>
+{% endblock %}

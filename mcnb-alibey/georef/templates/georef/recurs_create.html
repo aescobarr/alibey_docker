@@ -1,0 +1,107 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet/leaflet.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/css/styledLayerControl.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/leaflet.draw.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" >
+    <link href="{% static 'jstree/dist/themes/default/style.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-tagit/css/jquery.tagit.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-tagit/css/tagit.ui-zendesk.css' %}" rel="stylesheet">
+    <style>
+        .hidden-capawms-id-value { display:none; }
+        ul#taulacapes {
+            list-style-type: none;
+        }
+        .leaflet-top, .leaflet-bottom {
+            pointer-events: auto !important;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _import_shapefile_url = "{% url 'process_shapefile' %}";
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var csrf_token = '{{ csrf_token }}';
+        var wms_url = "{{ wms_url }}";
+        var _wms_metadata_url = '{% url 'wmsmetadata' %}';
+    </script>
+{% endblock %}
+{% block main %}
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                    <li class="breadcrumb-item">{% trans 'Recursos' %}</li>
+                    <li class="breadcrumb-item active">{% trans "Afegir nou recurs" %}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="container">
+            <form action="{% url 'recursos_create' %}" method="post">
+                {% csrf_token %}
+                {% include 'georef/_recursos_fields.html' %}
+            </form>
+        </div>
+    </main>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+    <script>
+        /* Fix for tagit/jquery conflict */
+        $.fn.andSelf = function() {
+            return this.addBack.apply(this, arguments);
+        }
+    </script>
+    <script src="{% static 'jquery-tagit/js/tag-it.min.js' %}"></script>
+    <script src="{{ google_maps }}" async defer></script>
+    <script src="{% static 'georef/javascript/leaflet/leaflet.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.GridLayer.GoogleMutant/Leaflet.GoogleMutant.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/src/styledLayerControl.js' %}"></script>
+
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.Draw.Event.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Toolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Tooltip.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/GeometryUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LatLngUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LineUtil.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polygon.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polyline.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/TouchEvents.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/DrawToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Feature.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polyline.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polygon.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/EditToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Edit.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Delete.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Control.Draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Poly.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Coordinates-master/dist/Leaflet.Coordinates-0.1.5.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/turf.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet-bing-layer.min.js' %}"></script>
+    <script>
+        var bing_key = '{{ bing }}';
+    </script>
+    <script src="{% static 'georef/javascript/djangoref_map.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/cookies.js'%}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js'%}?{{ revision }}"></script>
+    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="{% static 'georef/javascript/recurs_autocomplete.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/recurs_create.js' %}?{{ revision }}"></script>
+{% endblock %}

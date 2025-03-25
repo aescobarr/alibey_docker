@@ -1,0 +1,15 @@
+alibey_db/backup/
+alibey_db/postgres_data/
+alibey_db/scripts/alibey.dmp
+api/node_modules/
+api/env-example
+geoserver/backup/
+geoserver/data_dir/data/
+geoserver/data_dir/demo/
+geoserver/data_dir/gwc/
+geoserver/data_dir/logs/geoserver.log
+mcnb-alibey/uploads/
+mcnb-alibey/camps_dwc.txt
+static_content/
+.env
+notes.txt

@@ -1,0 +1,50 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _user_list_url = "{% url 'users_datatable_list' %}";
+        var _add_user_url = "{% url 'user_new' %}";
+        var _user_delete_url = "{% url 'users-list' %}";
+        var check_delete_url = "{% url 't_checkdelete' %}";
+        var _user_lock_url = "{% url 'block_user' %}";
+        var user_id = {{ user.id }};
+    </script>
+{% endblock %}
+{% block main %}
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                    <li class="breadcrumb-item">{% trans 'Sessió' %}</li>
+                    <li class="breadcrumb-item active">{% trans 'Gestió usuaris' %}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="container">
+            <p>
+                {% trans 'message_user_delete_warning' %}
+            </p>
+        </div>
+        <div class="container separador_seccio">
+            <div class="pull-right">
+                <button id="addUser" type="button" class="btn btn-primary">{% trans 'Afegir' %} <i class="fa fa-plus" aria-hidden="true"></i></button>
+            </div>
+        </div>
+        <div class="container">
+            <table id="users_list" style="width:100%;"></table>
+        </div>
+    </main>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/cookies.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/utils.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/users_list.js' %}?{{ revision }}"></script>
+{% endblock %}

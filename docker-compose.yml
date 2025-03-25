@@ -1,0 +1,41 @@
+services:
+  api:
+    build: ./api
+    env_file:
+      - ./.env
+    ports:
+      - 7000:7000
+    depends_on:
+      - web
+  geoserver:
+    build: ./geoserver
+    volumes:
+      - ./geoserver/data_dir:${GEOSERVER_DATA_DIR}
+    env_file:
+      - ./.env
+    ports:
+      - 8080:8080
+    depends_on:
+      - web      
+  db:
+    build: ./alibey_db
+    volumes:
+      - ./alibey_db/postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_PASSWORD=${DJANGO_ADMIN_PASSWORD}
+  web:
+    build: .
+    working_dir: /public_html    
+    ports:
+      - 49155:49155
+    command: gunicorn -b 0.0.0.0:49155 -c /public_html/djangoref/gunicorn_conf.py djangoref.wsgi    
+    environment:
+      - DEBUG=0
+    env_file:
+      - ./.env
+    volumes:      
+      - ./static_content:/public_html/djangoref/static/
+    depends_on:
+      - db

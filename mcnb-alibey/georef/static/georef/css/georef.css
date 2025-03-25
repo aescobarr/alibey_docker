@@ -1,0 +1,402 @@
+.container {
+    top: 50px;
+}
+
+.wrapper{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.no_side_margin{
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.caixaCoordenades{
+    position: relative;
+    top:38px;
+    left: 815px;
+    z-index: 1;
+    background-color: #00008B;
+    color: white;
+    padding: 5px;
+    height: 10px;
+    width:140px;
+    font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
+    font-size: 85%;
+}
+.controlCapes{
+    display: inline;
+    position: absolute;
+    top: 55px;
+    left: 740px;
+    width: 260px;
+    z-index: 1
+}
+.panellInteriorControlCapes{
+    position: relative;
+    height: 469px;
+    overflow: auto;
+}
+#map {
+    margin-top: 10px;
+    height: 400px;
+}
+table.dataTable tr.odd { background-color: #ceeefd; }
+table.dataTable tr.even { background-color: white; }
+
+#taulafiltre th, td {
+    padding: 10px;
+}
+
+.clear_blue {
+    background-color: #ceeefd;
+}
+
+.blue {
+    background-color: #3bbbf7;
+}
+
+.dark_blue {
+    background-color: #0777ab;
+}
+
+/* ----- NAVBAR ------ */
+
+/*
+    #F8F8F8: navbar background
+    #E7E7E7: navbar border
+    #777: default color
+    #333: hover color (#5E5E5E for .nav-brand)
+    #555: active color
+    #D5D5D5: active background
+*/
+
+/* navbar */
+.navbar-default {
+    background-color: #3bbbf7;
+    border-color: #3bbbf7;
+}
+/* Title */
+.navbar-default .navbar-brand {
+    color: white;
+}
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+    color: #5E5E5E;
+}
+/* Link */
+.navbar-default .navbar-nav > li > a {
+    color: white;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #333;
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #555;
+    background-color: #E7E7E7;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #555;
+    background-color: #D5D5D5;
+}
+/* Caret */
+.navbar-default .navbar-nav > .dropdown > a .caret {
+    border-top-color: white;
+    border-bottom-color: white;
+}
+.navbar-default .navbar-nav > .dropdown > a:hover .caret,
+.navbar-default .navbar-nav > .dropdown > a:focus .caret {
+    border-top-color: #333;
+    border-bottom-color: #333;
+}
+.navbar-default .navbar-nav > .open > a .caret,
+.navbar-default .navbar-nav > .open > a:hover .caret,
+.navbar-default .navbar-nav > .open > a:focus .caret {
+    border-top-color: #555;
+    border-bottom-color: #555;
+}
+/* Mobile version */
+.navbar-default .navbar-toggle {
+    border-color: #DDD;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: #DDD;
+}
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #CCC;
+}
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+        color: #777;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+          color: #333;
+    }
+}
+
+
+.ui-dialog { z-index: 1000 !important ;}
+
+div#lletresllistat a{
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+div#lletresllistat a.selected{
+    background-color:#337ab7;
+    color: white;
+}
+
+table#toponim_edit tbody tr td ul{
+	list-style-type: none;
+}
+
+table#toponim_edit tbody tr td ul li{
+	float: left;
+}
+
+.separador_seccio {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.separador_seccio p{
+    background: #4598ea;
+    color: #FFF !important;
+    padding-left: 10px;
+}
+
+#ariadna ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#ariadna ul li {
+    float: left;
+    padding: 5px;
+}
+
+.scroll_jstree{
+    height: 200px;
+    overflow: auto;
+}
+
+.add_toponimversio{
+    /*background-color:blue;*/
+    margin-left: 15px;
+    margin-top: 10px;
+}
+
+.remove_toponimversio{
+    background-color:red;
+}
+
+.table_top {
+    background-color: gray;
+}
+
+.active_edit {
+    background-color: #A9A9A9;
+    color: white;
+}
+
+#versions{
+    margin-top: 10px;
+}
+
+#versions tr { line-height: 10px; }
+
+#boto-digit-point{
+    position: absolute;
+    z-index: 800;
+    top: 116px;
+    left: 44px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    border-radius: 4px;
+    background-color: #fff;
+    width: 28px;
+    height: 28px;
+}
+
+.custom-digit-point{
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    width: 28px;
+    height: 28px;
+    background-image:url('/static/georef/css/icon/crosshair_smaller.png');
+    background-repeat: no-repeat;
+    background-position: 4px 4px;
+}
+
+.custom-digit-point:hover {
+    background-color: #f2f2f2;
+}
+
+.imatge_dwc {
+    background: url(/static/georef/css/icon/gbif-dot-org-green-logo.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.imatge_pdf {
+    background: url(/static/georef/css/icon/pdf16x16.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.imatge_kml {
+    background: url(/static/georef/css/icon/kml.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.imatge_csv {
+    background: url(/static/georef/css/icon/csv_text.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.imatge_shp {
+    background: url(/static/georef/css/icon/page_shp.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.imatge_xls {
+    background: url(/static/georef/css/icon/xls16x16.png) no-repeat;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+}
+
+.error{
+    color: red;
+}
+
+.errorlist{
+    color: red;
+}
+
+table#recurs_edit {
+	width: 100%;
+}
+
+#toponimsbasats ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#toponimsbasats ul li {
+    float: left;
+    padding: 5px;
+}
+
+.asyncload {
+    background-image: url(/static/georef/css/icon/indicator.white.gif);
+    background-repeat: no-repeat;background-position: right;
+    padding-right: 18px;
+}
+
+/*
+table.toponimsimportats{
+    border: 0px;
+}
+
+table.toponimsimportats tr{
+    border: 0px;
+}
+
+table.toponimsimportats tr td{
+    border: 0px;
+    font-size: 9px;
+}
+
+table.toponimsimportats th{
+    border: 0px;
+}
+*/
+
+table.toponimsimportats tbody tr.even{
+    background-color: #D2D2D2;
+}
+
+table.toponimsimportats tbody tr.odd{
+    background-color: #ffdbbc;
+}
+
+/*
+.leaflet-control-layers {
+    max-height: 200px;
+    overflow: auto;
+}
+*/
+
+.iconainfo {
+    position:relative;
+}
+.iconainfo:before {
+    content: "\f05a";  /* this is your text. You can also use UTF-8 character codes as I do here */
+    font-family: FontAwesome;
+    left:-15px;
+    position:absolute;
+    top:0;
+}
+
+/* Autocomplete fix */
+.ui-autocomplete { z-index: 9999; }
+
+.qq-upload-button.ui-widget-content.ui-button.ui-corner-all.ui-state-default span{
+    font-size: 10px;
+}
+
+.warning_delete_body{
+    font-size: 12px;
+}
+
+.warning_delete_cascade{
+    color: red;
+    font-size: 12px;
+    max-height: 200px;
+    overflow: auto;
+}
+
+.warning_delete_cascade_noc{
+    color: green;
+    font-size: 12px;
+}
+
+.page-header {
+	/* padding-bottom: 9px; */
+	margin: 10px 0 10px;
+	border-bottom: none;
+}
+
+.navbar-nav > li > a {
+	font-size: 12px;
+}
+
+table.dataTable tr.disabled {
+    color: #7c7c7c;
+    font-style: italic;
+    background-color: #dedede;
+}

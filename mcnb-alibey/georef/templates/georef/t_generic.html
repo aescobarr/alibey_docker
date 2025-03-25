@@ -1,0 +1,107 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+<link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+<link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block extrahead %}
+<script>
+        var options = {
+            column_name : "{{ column_name }}",
+            data_url : "{{ list_url }}",
+            crud_url: "{{ crud_url }}",
+            text_field_name: "{{ text_field_name }}",
+            instance_label: "{{ instance_label }}",
+            class_full_qualified_name: "{{ class_full_qualified_name }}"
+        };
+
+        var check_delete_url = "{% url 't_checkdelete' %}";
+
+        var user_can_edit = false;
+        {% if user.profile.is_admin or user.profile.can_edit_tesaure or user.is_superuser %}
+        user_can_edit = true;
+        {% endif %}
+</script>
+{% endblock %}
+{% block main %}
+<main>
+    <div class="page-header">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                <li class="breadcrumb-item">{% trans 'Tesaures' %}</li>
+                <li class="breadcrumb-item active">{{ class_name_sing }}</li>
+            </ol>
+        </div>
+    </div>
+    {% if description %}
+    <div class="container alert alert-success">
+        <h4>{{ description }}</h4>
+        {% if user.profile.is_admin or user.profile.can_edit_tesaure or user.is_superuser %}
+            <a href="{% url 't_description_edit' description_id %}?next={{ request.path }}" id="edit_description" type="button" class="btn btn-primary">{% trans 'Editar' %} <i class="fa fa-edit" aria-hidden="true"></i></a>
+        {% endif %}
+    </div>
+    {% else %}
+    {% if user.profile.is_admin or user.profile.can_edit_tesaure or user.is_superuser %}
+    <div class="container alert alert-danger">
+        <a href="{% url 't_description_new' %}?next={{ request.path }}&label={{ class_name_sing|urlencode }}&model={{ class_full_qualified_name|urlencode }}" id="new_description" type="button" class="btn btn-danger">{% trans 'Aquest tesaure no té descripció, pots afegir-la' %} <i class="fa fa-plus" aria-hidden="true"></i></a>
+    </div>
+    {% endif %}
+    {% endif %}
+    <div class="container separador_seccio">
+        <div class="pull-right">
+            {% if user.profile.is_admin or user.profile.can_edit_tesaure or user.is_superuser %}
+            <button id="add" type="button" class="btn btn-primary">{% trans 'Afegir' %} <i class="fa fa-plus" aria-hidden="true"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container">
+        <table id="element_list" style="width:100%;"></table>
+    </div>
+
+    <div id="dialog-form-update" title="{% trans 'Editar' %}">
+        <p class="validateTips">{% trans 'Tots els camps són obligatoris.' %}</p>
+
+        <form>
+            <div class="form-group">
+                <label for="name">{{ column_name }}</label>
+                <input type="text" name="name_update" id="name_update" value="" class="form-control">
+                <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            </div>
+            <div class="form-group">
+                <label for="description_update">Description</label>
+                <textarea style="width:100%;" name="description_update" id="description_update"></textarea>
+                <input type="hidden" name="id" id="id" value="">
+            </div>
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </form>
+    </div>
+
+    <div id="dialog-form-create" title="Crear">
+        <p class="validateTips">{% trans 'Tots els camps són obligatoris.' %}</p>
+
+        <form>
+            <div class="form-group">
+                <label for="name">{{ column_name }}</label>
+                <input type="text" name="name" id="name" value="" class="form-control">
+                <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea style="width:100%;" name="description" id="description"></textarea>
+            </div>
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </form>
+    </div>
+
+</main>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'georef/javascript/cookies.js' %}?{{ revision }}"></script>
+<script src="{% static 'georef/javascript/csrf_utils.js' %}?{{ revision }}"></script>
+<script src="{% static 'georef/javascript/generic_thesaurus.js' %}?{{ revision }}"></script>
+<script src="{% static 'georef/javascript/generic_thesaurus_init.js' %}?{{ revision }}"></script>
+{% endblock %}

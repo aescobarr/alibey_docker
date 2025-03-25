@@ -1,0 +1,281 @@
+{% extends "georef/base.html" %}
+{% load i18n %}
+{% load static %}
+{% block extra_css %}
+    <link href="{% static 'datatables.net-dt/css/jquery.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet/leaflet.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/css/styledLayerControl.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/leaflet.draw.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">    
+    <link href="{% static 'georef/javascript/leaflet.plugins/Leaflet.Coordinates-master/dist/Leaflet.Coordinates-0.1.5.css' %}" rel="stylesheet">
+    <link href="{% static 'georef/javascript/leaflet.plugins/leaflet-sidebar-v2/leaflet-sidebar.css' %}" rel="stylesheet">
+    <style>
+        table#toponims_list.dataTable.no-footer tbody tr td {
+            font-size: 10px;
+        }
+        table#taulafiltre tbody tr td {
+            font-size: 10px;
+        }
+        table#taulafiltre tr td {
+            font-size: 10px;
+        }
+        html body main div.container div.wrapper.clear_blue table#taulafiltre tr td select.input-field{
+            font-size: 10px;
+        }
+        .btn.btn-primary{
+            font-size: 10px;
+        }
+        .btn.btn-danger{
+            font-size: 10px;
+        }
+        .dataTables_paginate.paging_full_numbers{
+            font-size: 9px;7
+        }
+        .dataTables_filter{
+            font-size: 10px;
+        }
+        .dataTables_info{
+            font-size: 10px;
+        }
+        #map {
+            margin-top: 10px;
+            height: 700px;
+        }
+        .collapsed{
+            height: 45px;
+        }
+        .navbar {
+	        margin-bottom: 0px;
+        }
+    </style>
+{% endblock %}
+{% block extrahead %}
+    <script>
+        var _toponim_list_url = "{% url 'toponims_datatable_list' %}";
+        var _toponim_delete_url = "{% url 'toponims-list' %}";
+        var _filtres_list_url = "{% url 'filtres-list' %}";
+        var _filtres_delete_url = "{% url 'filtres-list' %}";
+        var _filtres_update_url = "{% url 'filtres-list' %}";
+        var _filtres_create_url = "{% url 'filtres-list' %}";
+        var _check_filtre_url = "{% url 'check_filtre' %}";
+        var csrf_token = '{{ csrf_token }}';
+        var _ajax_upload_url = "{% url 'ajax_upload' %}";
+        var _import_shapefile_url = "{% url 'process_shapefile' %}";
+        var wms_url = "{{ wms_url }}";
+        var _toponims_list_pdf = "{% url 'toponims_list_pdf' %}";
+        var _toponims_list_dwc = "{% url 'toponims_list_dwc' %}";
+        var _toponims_list_csv = "{% url 'toponims_list_csv' %}";
+        var _toponims_list_xls = "{% url 'toponims_list_xls' %}";
+
+        var wmslayers = JSON.parse('{{ wmslayers | escapejs }}');
+    </script>
+{% endblock %}
+{% block main %}
+<main>
+    <form name="kml" action="{{ wms_url }}" method="POST">
+        <input type="hidden" name="service" value="WMS" />
+        <input type="hidden" name="version" value="1.1.0" />
+        <input type="hidden" name="request" value="GetMap" />
+        <input type="hidden" name="layers" value="mzoologia:toponimsdarreraversio" />
+        <input type="hidden" name="styles" value="" />
+        <input type="hidden" name="bbox" value="-180,-90,180,90" />
+        <input type="hidden" name="width" value="2157" />
+        <input type="hidden" name="height" value="330" />
+        <input type="hidden" name="srs" value="EPSG:4326" />
+        <input type="hidden" name="CQL_FILTER" value="" />
+        <input type="hidden" name="format" id="format" value="application/vnd.google-earth.kml+xml" />
+    </form>
+    <form name="shp" action="{{ wms_url }}" method="POST">
+        <input type="hidden" name="service" value="WFS" />
+        <input type="hidden" name="version" value="1.0.0" />
+        <input type="hidden" name="request" value="GetFeature" />
+        <input type="hidden" name="typeName" value="mzoologia:toponimsdarreraversio" />
+        <input type="hidden" name="outputFormat" value="SHAPE-ZIP" />
+        <input type="hidden" name="CQL_FILTER" id="CQL_FILTER" value="" />
+    </form>
+    <!--<div class="page-header">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
+                <li class="breadcrumb-item">{% trans 'Topònims' %}</li>
+                <li class="breadcrumb-item active">{% trans 'Llistat' %}</li>
+            </ol>
+        </div>
+    </div>-->
+    <div id="dialog-confirm" title="{% trans 'Confirmar sobreescriure filtre' %}" style="display:none;">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>{% trans 'msg_warn_overwrite_filter' %}</p>
+    </div>
+    <div class="container">
+    </div>
+    <div class="container-fluid">
+        <div id="map" class="sidebar-map">
+            <div id="sidebar" class="sidebar collapsed">
+            <div class="sidebar-tabs">
+                <ul role="tablist">
+                    <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                </ul>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-pane" id="home">
+                    <h1 class="sidebar-header">{% trans 'Topònims' %}<span class="sidebar-close"><i class="fa fa-caret-right"></i></span></h1>
+                    <div class="col-xs-12" style="height:25px;"></div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <a class="imatge_shp" title="{% trans 'Exportar a shp' %}" href="#" onclick="javascript:exportSHP(); return false;"></a>
+                            <a class="imatge_kml" title="{% trans 'Exportar a kml' %}" href="#" onclick="javascript:exportKML(); return false;"></a>
+                            <a class="imatge_xls" title="{% trans 'Exportar a xls' %}" href="#" onclick="javascript:exportXLS(); return false;"></a>
+                            <a class="imatge_csv" title="{% trans 'Exportar a csv' %}" href="#" onclick="javascript:exportCSV(); return false;"></a>
+                            <a class="imatge_pdf" title="{% trans 'Exportar a pdf' %}" href="#" onclick="javascript:exportPDF(); return false;"></a>
+                            <a class="imatge_dwc" title="{% trans 'Exportar a Darwin Core' %}" href="#" onclick="javascript:exportDWC(); return false;"></a>
+                        </div>
+                        <div class="btn-group col-md-10" role="group">
+                            <button class="btn btn-default alltbtn active">{% trans 'Tots' %}</button>
+                            <button data-idorg="{{ user.profile.organization.id }}" class="btn btn-default sometbtn"><b>{{ user.profile.organization.name }}</b></button>
+                        </div>
+                    </div>
+                    <div class="wrapper clear_blue">
+                        <button data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_add_condicio' %}" id="addCondicio" type="button" class="btn btn-primary">{% trans "Afegir condició" %} <i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <table id="taulafiltre">
+                            <tbody>
+                                <tr>
+                                    <td><strong>{% trans "Operador" %}</strong></td>
+                                    <td><strong>{% trans "NOT" %}</strong></td>
+                                    <td><strong>{% trans "Condició" %}</strong></td>
+                                    <td><strong>{% trans "Valor" %}</strong></td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row container no_side_margin">
+                            <button data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_filter' %}" id="doFilter" type="button" class="btn btn-primary">{% trans "Filtrar" %} <i class="fa fa-filter" aria-hidden="true"></i></button>
+                            <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_clear_filter' %}" id="doClear" type="button" class="btn btn-danger">{% trans "Netejar filtre" %} <i class="fa fa-close" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="row container no_side_margin">
+                            <label class="iconainfo" data-toggle="tooltip" data-placement="left" title="{% trans 'help_btn_filter_load' %}" for="saveDoFilter">{% trans "Carregar filtre" %}</label>
+                            <input id="autoc_filtres" type="text">
+                            {% if user.profile.is_admin or user.profile.can_edit_filtre or user.is_superuser %}
+                            <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_filter_save' %}" id="saveDoFilter" type="button" class="btn btn-primary">{% trans "Desar i filtrar" %} <i class="fa fa-thumb-tack" aria-hidden="true"></i><i class="fa fa-filter" aria-hidden="true"></i></button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if user.profile.is_admin or user.profile.can_edit_toponim or user.is_superuser %}
+                        <button data-toggle="tooltip" data-placement="right" title="{% trans 'help_btn_add_toponym' %}" id="addToponim" type="button" class="btn btn-primary">{% trans 'Afegir' %} <i class="fa fa-plus" aria-hidden="true"></i></button>
+                        {% endif %}
+                        <table id="toponims_list" style="width:100%;"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div class="container-fluid">        
+        <input type="file" id="fileInput">
+        <label for="fileInput" class="custom-file-upload">Importar shapefile</label>
+        <p id="message"></p>
+    </div>
+</main>
+{% endblock %}
+{% block extra_js %}
+    <script>
+        var table;
+        var indexTaula = 0;
+
+        var valorsOperadors = new Array();
+        valorsOperadors[0] = {id : "and", value : "AND"};
+        valorsOperadors[1] = {id : "or", value : "OR" };
+
+        var valorsCondicions = new Array();
+        valorsCondicions[0] = {id : "nom",value : "{% trans 'Nom' %}"};
+        valorsCondicions[1] = {id : "nomautor",value : "{% trans 'Autor' %}"};
+        valorsCondicions[2] = {id : "tipus",value : "{% trans 'Tipus' %}"};
+        /*valorsCondicions[3] = {id : "pais",value : "{% trans 'País' %}"};*/
+        valorsCondicions[3] = {id : "aquatic",value : "{% trans 'Aquàtic' %}?"};
+        valorsCondicions[4] = {id : "versio",value : "{% trans 'Versió' %}"};
+        valorsCondicions[5] = {id : "geografic",value : "{% trans 'Filtre geogràfic' %}"};
+        valorsCondicions[6] = {id : "arbre",value : "{% trans 'Inclosos a' %}"};
+
+        var valorsAquatic = new Array();
+        valorsAquatic[0] = {id : "S",value : "Sí"};
+        valorsAquatic[1] = {id : "N",value : "No"};
+
+        var valorsAutors = new Array();
+        {% for autor in llista_autors %}
+            valorsAutors.push({id:"{{ autor.id }}",value:"{{ autor.first_name }} {{ autor.last_name }}"});
+        {% endfor %}
+
+        var valorsTipus = new Array();
+        {% for tipus in llista_tipus %}
+            valorsTipus.push({id:"{{ tipus.id }}",value:"{{ tipus.nom }}"});
+        {% endfor %}
+
+        var valorsPaisos = new Array();
+        {% for pais in llista_paisos %}
+            valorsPaisos.push({id:"{{ pais.id }}",value:"{{ pais.nom }}"});
+        {% endfor %}
+
+        var valorsVersio = new Array();
+        {% for versio in llista_versions %}
+            valorsVersio.push({id:"{{ versio.id }}",value:"{{ versio.qualificador }}"});
+        {% endfor %}
+
+        var editableLayers;
+        var controlCapes;
+        var current_user_id = '{{ user.id }}';
+
+    </script>
+    <script src="{{ google_maps }}" async defer></script>
+    <script src="{% static 'datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet/leaflet.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.GridLayer.GoogleMutant/Leaflet.GoogleMutant.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.StyledLayerControl/src/styledLayerControl.js' %}"></script>
+
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Leaflet.Draw.Event.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Toolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Tooltip.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/GeometryUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LatLngUtil.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/LineUtil.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polygon.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/Polyline.Intersect.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/ext/TouchEvents.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/DrawToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Feature.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polyline.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Polygon.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/draw/handler/Draw.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/EditToolbar.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Edit.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/EditToolbar.Delete.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/Control.Draw.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Poly.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.SimpleShape.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Rectangle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Marker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.CircleMarker.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Draw.static/src/edit/handler/Edit.Circle.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/Leaflet.Coordinates-master/dist/Leaflet.Coordinates-0.1.5.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/leaflet.plugins/leaflet-sidebar-v2/leaflet-sidebar.js' %}"></script>
+    <script src="{% static 'georef/javascript/OpenLayers2.12.js' %}"></script>
+    <script src="{% static 'georef/javascript/wicket.min.js' %}"></script>
+    <script src="{% static 'georef/javascript/cookies.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/csrf_utils.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/filtre.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/filtrecql.js' %}?{{ revision }}"></script>    
+    <script src="{% static 'georef/javascript/toponims_list.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/leaflet-bing-layer.min.js' %}"></script>
+    <script>
+        var bing_key = '{{ bing }}';
+    </script>
+    <script src="{% static 'georef/javascript/djangoref_map.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/file_uploader.js' %}?{{ revision }}"></script>
+    <script src="{% static 'georef/javascript/init_llista_toponims.js' %}?{{ revision }}"></script>
+    <!--<script src="{% static 'georef/javascript/leaflet_map_editable.js' %}"></script>-->
+{% endblock %}
