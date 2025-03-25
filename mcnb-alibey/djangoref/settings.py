@@ -166,9 +166,6 @@ DATABASES = {
 
 STATIC_URL = '/static/'
 
-# OVERRIDEN IN SETTINGS_LOCAL
-STATIC_ROOT = os.environ.get("STATIC_ROOT", '/public_html/djangoref/static/')
-
 LOGIN_REDIRECT_URL = '/'
 
 LOGOUT_REDIRECT_URL = '/'
@@ -224,7 +221,7 @@ STATIC_ROOT = '/public_html/djangoref/static/'
 GEOSERVER_WORKSPACE = 'mzoologia'
 GEOSERVER_USER = os.environ.get("GEOSERVER_ADMIN_USER", 'admin')
 GEOSERVER_PASSWORD = os.environ.get("GEOSERVER_ADMIN_PASSWORD", 'geoserver')
-GEOSERVER_EXTERNAL_URL = 'http://127.0.0.1:8080/'
+GEOSERVER_EXTERNAL_URL = os.environ.get("GEOSERVER_EXTERNAL_URL",'http://127.0.0.1:8080/')
 GEOSERVER_BASE_URL = 'http://geoserver:8080/'
 GEOSERVER_WMS_URL_CLEAN = GEOSERVER_BASE_URL + 'geoserver/wms/'
 GEOSERVER_WMS_URL_CLEAN_EXTERNAL = GEOSERVER_EXTERNAL_URL + 'geoserver/wms/'
