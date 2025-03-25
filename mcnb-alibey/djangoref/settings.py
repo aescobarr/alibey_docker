@@ -167,7 +167,7 @@ DATABASES = {
 STATIC_URL = '/static/'
 
 # OVERRIDEN IN SETTINGS_LOCAL
-STATIC_ROOT = os.environ.get("STATIC_ROOT", '/var/www/static_content/')
+STATIC_ROOT = os.environ.get("STATIC_ROOT", '/public_html/djangoref/static/')
 
 LOGIN_REDIRECT_URL = '/'
 
