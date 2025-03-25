@@ -50,7 +50,7 @@ SECRET_KEY = 'gx%(-$i!e@y9o-xa^=962t*f-ngn-!u+zf)m-$icedw8pzb@&s'
 DEBUG = os.environ.get("DEBUG", False)
 
 # OVERRIDEN IN SETTINGS_LOCAL
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","*").split(" ")
 
 
 # Application definition
