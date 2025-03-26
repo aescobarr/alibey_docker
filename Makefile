@@ -31,7 +31,7 @@ build: ## Build containers.
 start:  ## Create and start containers.
 	docker compose $(DOCKER_COMPOSE_FLAGS) up -d --force-recreate
 
-undetached:  ## Create and start containers.
+start_u:  ## Create and start containers without detached mode
 	docker compose $(DOCKER_COMPOSE_FLAGS) up --force-recreate
 
 restart:  ## Restart service containers.

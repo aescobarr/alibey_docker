@@ -20,7 +20,8 @@ services:
   db:
     build: ./alibey_db
     volumes:
-      - ./alibey_db/postgres-data:/var/lib/postgresql/data
+      # - ./alibey_db/postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.env
     environment:
@@ -39,3 +40,6 @@ services:
       - ./static_content:/public_html/djangoref/static/
     depends_on:
       - db
+
+volumes:
+  postgres_data:
