@@ -230,7 +230,8 @@ GEOSERVER_WMS_URL = GEOSERVER_EXTERNAL_URL + 'geoserver/' + GEOSERVER_WORKSPACE 
 
 BING_MAPS_API_KEY = os.environ.get("BING_MAPS_API_KEY", "")
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:1337']
+#CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:1337']
+CSRF_TRUSTED_ORIGINS = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS","").split(" ")
 
 try:
     from djangoref.settings_local import *
