@@ -90,6 +90,7 @@
                     <li><a href="{% url 'toponims_search' %}">{% trans "Cerca topònim" %}</a></li>
                     <li><a href="{% url 'calculcentroides' %}">{% trans "Calcula centroides" %}</a></li>
                     <li><a href="{% url 'toponims_import' %}">{% trans "Importació de topònims" %}</a></li>
+                    <li><a href="{% url 'toponims_dwc_import' %}">{% trans "Importació de topònims en format Darwin Core" %}</a></li>
                     <li><a href="{% url 'graphs' %}">{% trans "Gràfiques" %}</a></li>
                     {% if user.profile.is_admin or user.is_superuser %}
                     <li><a href="{% url 'menu_edit' %}">{% trans "Edició menú utilitats" %}</a></li>

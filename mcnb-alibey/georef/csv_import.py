@@ -5,13 +5,7 @@ from dateutil import parser
 from django.db.models import Q
 import operator, functools
 import re
-
-class NumberOfColumnsException(Exception):
-    pass
-
-
-class EmptyFileException(Exception):
-    pass
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists
 
 
 FIELD_MAP = {
@@ -41,13 +35,6 @@ def check_file_structure(file_array):
         if len(rows) != len(FIELD_MAP):
             raise NumberOfColumnsException({"numrow": str(numlinia), "numcols": str(len(rows))})
         numlinia = numlinia + 1
-
-
-def toponim_exists(line):
-    try:
-        return Toponim.objects.get(linia_fitxer_importacio=line)
-    except Toponim.DoesNotExist:
-        return None
 
 
 def get_georeferencer_by_name_simple(name):

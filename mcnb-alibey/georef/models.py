@@ -152,6 +152,14 @@ class Toponim(models.Model):
         except:
             pass
 
+    def get_denormalized_toponimtree_full(self):
+        try:
+            toponimtree = self.get_denormalized_toponimtree()
+            return ' | '.join( [ a.split('$')[1] for a in toponimtree ] )
+        except:
+            pass
+
+
     def can_i_edit(self, toponim_permission):
         '''
         Returns true if a given user has permission to edit this toponim based on his upper limit toponim edit permission

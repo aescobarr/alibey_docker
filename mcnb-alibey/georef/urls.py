@@ -75,6 +75,7 @@ urlpatterns = [
     re_path(r'^toponims/list/dwc/$', views.toponims_list_dwc, name='toponims_list_dwc'),
     re_path(r'^toponims/list/xls/$', views.toponims_list_xls, name='toponims_list_xls'),
     re_path(r'^toponims/import/$', views.toponims_import, name='toponims_import'),
+    re_path(r'^toponims/dwc_import/$', views.toponims_dwc_import, name='toponims_dwc_import'),
 
     re_path(r'^recursos$', views.recursos, name='recursos'),
     re_path(r'^recursos/create/$', views.recursos_create, name='recursos_create'),

@@ -17,6 +17,7 @@ RUN apt -y install libgdal-dev
 RUN apt -y install libmagic1
 RUN apt -y install libpangocairo-1.0-0
 RUN apt -y install netcat-traditional
+RUN apt -y install gettext
 # RUN apt -y install nodejs
 # RUN apt -y install npm
 # RUN npm install -g bower
