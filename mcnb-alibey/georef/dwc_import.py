@@ -1,5 +1,9 @@
-from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists
-from georef.models import Toponim, Toponimversio
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, get_model_by_attribute, get_georeferencer_by_name_simple, is_empty_field
+from georef.models import Toponim, Toponimversio, Tipustoponim, Recursgeoref
+from georef_addenda.models import GeometriaToponimVersio
+from dateutil import parser
+from django.contrib.gis.geos import GEOSGeometry
+from georef.sec_calculation import compute_sec
 import re
 
 FIELD_MAP_DWC = {
@@ -49,23 +53,27 @@ def parse_valid_name(name):
         "environment": environment.strip()
     }    
 
+def parse_geometry(wkt, srid):
+    geom = GEOSGeometry(wkt, srid=srid)
+    return geom
+
 def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_create, line_counter, problemes, nomFitxer):
     t = toponim_exists(line_string)
     if t is None:
         # [0] - Nom toponim --> Cap comprovacio(comprovar blancs)
         site_name = ''
         # [1] - Tipus toponim --> Buscar toponim per nom TipusToponim
-        # tt = None
+        tt = None
         # # [2] - Aquatic --> Cap comprovacio
-        # aquatic = 'N'
+        aquatic = 'N'
         # # [3] - Node superior --> Buscar toponim per nom(multiples resultats?)
-        # pare = None
+        pare = None
         # # [4] - Numero de versio
         # numeroVersio = -1
         # # [5] - Qualificador de la versió
         # qv = None
         # # [6] - Versio capturada del recurs RecursGeoreferenciacio
-        # rg = None
+        rg = None
         # # [7] - Nom del toponim al recurs
         # nomToponimRecurs = None
         # # [8] - Data
@@ -75,192 +83,155 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         # # [10] - Coord y original
         # coordY_original = None
         # # [11] - depth_max_height
-        # depth_max_height = None
+        depth_max_height = None
         # # [12] - depth_min_height
-        # depth_min_height = None
+        depth_min_height = None
         # # [13] - Incertesa de coordenada
         # precisioH = None
         # # [13] - Incertesa h
         # #precisioZ = None
         # # [14] - Georeferenciador
-        # georeferenciador = None
+        georeferenciador = None
         # # [15] - Observacions
-        # observacions = None
+        observacions = None
+        site_geometry = None
+        decimal_latitude = None
+        decimal_longitude = None
+        coordinate_uncertainty = None
 
         errorsALinia = False
         errorsLinia = []
         errorsLiniaActual = []
 
-        if line[FIELD_MAP_DWC['site_name']['index']] == '' or line[FIELD_MAP_DWC['site_name']['index']].strip() == '':
+        if is_empty_field(line[FIELD_MAP_DWC['site_name']['index']]):
             errorsALinia = True
-            errorsLiniaActual.append("Nom de toponim en blanc a la columna 1")
-            register_error(line_counter, "Nom de toponim en blanc a la columna 1", problemes)
+            errorsLiniaActual.append("Nom de toponim en blanc a la columna {}".format(FIELD_MAP_DWC['site_name']['index']))
+            register_error(line_counter, "Nom de toponim en blanc a la columna {}", problemes)
         else:
-            nom = line[FIELD_MAP_DWC['site_name']['index']].strip()
+            nom_unprocessed = line[FIELD_MAP_DWC['site_name']['index']].strip()
+            name_fields = parse_valid_name(nom_unprocessed)
+            if name_fields is None:
+                errorsALinia = True
+                errorsLiniaActual.append("Nom de toponim no vàlid a la columna {} - el nom de topònim ha de seguir l'esquema: [nom] - (tipus topònim) (Terrestre|Aquàtic) ".format(FIELD_MAP_DWC['site_name']['index']))
+                register_error(line_counter, "Nom de toponim no vàlid a la columna {}".format(FIELD_MAP_DWC['site_name']['index']), problemes)
+            else:
+                site_name = name_fields["name"]
+                toponim_type_str = name_fields["site_type"]
+                environment = name_fields["environment"]
+                if environment in ['Aquàtic', 'aquatic', 'aquàtic']:
+                    aquatic = 'S'
+                tt = get_model_by_attribute('nom', toponim_type_str, Tipustoponim)
+                if tt is None:
+                    errorsALinia = True
+                    errorsLiniaActual.append("No s'ha trobat el tipus de toponim '" + toponim_type_str + "' a la columna {}".format(FIELD_MAP_DWC['site_name']['index']))
+                    register_error(line_counter, "No s'ha trobat el tipus de toponim '" + toponim_type_str + "' a la columna {}".format(FIELD_MAP_DWC['site_name']['index']), problemes)        
 
-        # if line[FIELD_MAP['type']['index']] == '' or line[FIELD_MAP['type']['index']].strip() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("Tipus de toponim en blanc a la columna 2")
-        #     register_error(line_counter, "Tipus de toponim en blanc a la columna 2", problemes)
-        # else:
-        #     tt = get_model_by_attribute('nom', line[FIELD_MAP['type']['index']].strip(), Tipustoponim)
-        #     if tt is None:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No s'ha trobat el tipus de toponim '" + line[FIELD_MAP['type']['index']] + "' a la columna 2")
-        #         register_error(line_counter, "No s'ha trobat el tipus de toponim '" + line[FIELD_MAP['type']['index']] + "' a la columna 2", problemes)
+        if is_empty_field(FIELD_MAP_DWC['geography_list']['index']):
+            errorsALinia = True
+            errorsLiniaActual.append("Geografies superiors en blanc a la columna {}".format(FIELD_MAP_DWC['geography_list']['index']))
+            register_error(line_counter, "Geografies superiors en blanc a la columna {}".format(FIELD_MAP_DWC['geography_list']['index']), problemes)
+        else:
+            #check all sites in the chain exist and are hyerarchical
+            clean_names = [token.strip() for token in line(FIELD_MAP_DWC['geography_list']['index']).split("|")]
+            model = None
+            found = []
+            not_found = []
+            for name in clean_names:
+                model = get_model_by_attribute('nom', name, Toponim)
+                if model is not None:
+                    found.append("True")
+                else:
+                    found.append("False")
+                    not_found.append(name)
+            if all(found):
+                pare = model
+            else:
+                errorsALinia = True
+                errorsLiniaActual.append("Geografies superiors no trobades a la columna {0} : {1}".format( FIELD_MAP_DWC['geography_list']['index'], ','.join(not_found) ))
+                register_error(line_counter, "Geografies superiors en blanc a la columna {0} : {1}".format( FIELD_MAP_DWC['geography_list']['index'], ','.join(not_found) ), problemes)
+                
 
-        # if line[FIELD_MAP['aquatic']['index']] == '' or line[FIELD_MAP['aquatic']['index']].strip() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("Aquatic en blanc a la columna 3")
-        #     register_error(line_counter, "Aquatic en blanc a la columna 3", problemes)
-        # else:
-        #     if line[FIELD_MAP['aquatic']['index']].strip().lower() in ['true', 'cert', 'sí', 'si', '1', 'cierto', 'verdadero']:
-        #         aquatic = 'S'
+        if is_empty_field(line[FIELD_MAP_DWC['version_captured_from_resource']['index']]):
+            errorsALinia = True
+            errorsLiniaActual.append("El recurs de georeferenciacio en que es basa el recurs està en blanc a la columna {}".format(FIELD_MAP_DWC['version_captured_from_resource']['index']))
+            register_error(line_counter, "El recurs de georeferenciacio en que es basa el recurs està en blanc a la columna {}".format(FIELD_MAP_DWC['version_captured_from_resource']['index']), problemes)
+        else:
+            rg = get_model_by_attribute('nom', line[FIELD_MAP_DWC['version_captured_from_resource']['index']].strip(), Recursgeoref)
+            if rg is None:
+                errorsALinia = True
+                errorsLiniaActual.append("No trobo el recurs de georeferenciació '" + line[FIELD_MAP_DWC['version_captured_from_resource']['index']] + "' a la columna 7")
+                register_error(line_counter, "No trobo el recurs de georeferenciació '" + line[FIELD_MAP_DWC['version_captured_from_resource']['index']] + "' a la columna 7", problemes)
 
-        # if line[FIELD_MAP['parent_node']['index']] == '' or line[FIELD_MAP['parent_node']['index']].strip() == "":
-        #     pare = None
-        # else:
-        #     ts = get_toponim_nom_estructurat(line[FIELD_MAP['parent_node']['index']])
-        #     if len(ts) == 0:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No trobo cap topònim node superior amb nom '" + line[FIELD_MAP['parent_node']['index']] + "' a la columna 4")
-        #         register_error(line_counter, "No trobo cap topònim node superior amb nom '" + line[FIELD_MAP['parent_node']['index']] + "' a la columna 4", problemes)
-        #     elif len(ts) == 1:
-        #         pare = ts[0]
-        #     else:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Hi ha múltiples topònims  node superior amb nom '" + line[FIELD_MAP['parent_node']['index']] + "' a la columna 4")
-        #         register_error(line_counter, "Hi ha múltiples topònims  node superior amb nom '" + line[FIELD_MAP['parent_node']['index']] + "' a la columna 4", problemes)
-
-        # if line[FIELD_MAP['version_number']['index']] == '' or line[FIELD_MAP['version_number']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("Número de versió en blanc a la columna 5")
-        #     register_error(line_counter, "Número de versió en blanc a la columna 5", problemes)
-        # else:
-        #     try:
-        #         numeroVersio = int(line[FIELD_MAP['version_number']['index']])
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No sé convertir en nombre '" + line[FIELD_MAP['version_number']['index']] + "' a la columna 5")
-        #         register_error(line_counter, "No sé convertir en nombre '" + line[FIELD_MAP['version_number']['index']] + "' a la columna 5", problemes)
-
-        # if line[FIELD_MAP['version_qualifier']['index']] is None or line[FIELD_MAP['version_qualifier']['index']].strip().lower() == '':
-        #     qv = None # No és obligatori
-        # else:
-        #     qv = get_model_by_attribute('qualificador', line[FIELD_MAP['version_qualifier']['index']].strip(), Qualificadorversio)
-        #     if qv is None:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No trobo el qualificador de versió '" + line[FIELD_MAP['version_qualifier']['index']] + "' a la columna 6")
-        #         register_error(line_counter, "No trobo el qualificador de versió '" + line[FIELD_MAP['version_qualifier']['index']] + "' a la columna 6", problemes)
-
-        # if line[FIELD_MAP['version_captured_from_resource']['index']] is None or line[FIELD_MAP['version_captured_from_resource']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("El recurs de georeferenciacio en que es basa el recurs està en blanc a la columna 7")
-        #     register_error(line_counter, "El recurs de georeferenciacio en que es basa el recurs està en blanc a la columna 7", problemes)
-        # else:
-        #     rg = get_model_by_attribute('nom', line[FIELD_MAP['version_captured_from_resource']['index']].strip(), Recursgeoref)
-        #     if rg is None:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No trobo el recurs de georeferenciació '" + line[FIELD_MAP['version_captured_from_resource']['index']] + "' a la columna 7")
-        #         register_error(line_counter, "No trobo el recurs de georeferenciació '" + line[FIELD_MAP['version_captured_from_resource']['index']] + "' a la columna 7", problemes)
-
-        # if line[FIELD_MAP['site_name_on_resource']['index']] is None or line[FIELD_MAP['site_name_on_resource']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("El nom del topònim al recurs de georeferenciacio està en blanc a la columna 8")
-        #     register_error(line_counter, "El nom del topònim al recurs de georeferenciacio està en blanc a la columna 8", problemes)
-        # else:
-        #     nomToponimRecurs = line[FIELD_MAP['site_name_on_resource']['index']]
-
-        # if line[FIELD_MAP['date']['index']] is None or line[FIELD_MAP['date']['index']].strip().lower() == '':
-        #     data = None
-        # else:
-        #     try:
-        #         #data = datetime.strptime(line[8].strip(), '%d/%m/%Y')
-        #         data = parser.parse(line[8].strip())
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error convertint " + line[FIELD_MAP['date']['index']] + " a format data a  la columna 9")
-        #         register_error(line_counter, "Error convertint " + line[FIELD_MAP['date']['index']] + " a format data a  la columna 9", problemes)
-
-        # #x coord
-        # if line[FIELD_MAP['original_x']['index']] is None or line[FIELD_MAP['original_x']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("La coordenada x original està en blanc a la columna 11")
-        #     register_error(line_counter, "La coordenada x original està en blanc a la columna 11", problemes)
-        # else:
-        #     coordX_original = None
-        #     try:
-        #         float(line[FIELD_MAP['original_x']['index']].strip().replace(",", "."))
-        #         coordX_original = line[FIELD_MAP['original_x']['index']].strip().replace(",", ".")
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error de conversió a la coordenada x original " + line[FIELD_MAP['original_x']['index']] +  ", columna 11")
-        #         register_error(line_counter, "Error de conversió a la coordenada x original " + line[FIELD_MAP['original_x']['index']] +  ", columna 11", problemes)
-
-        # # coord y
-        # if line[FIELD_MAP['original_y']['index']] is None or line[FIELD_MAP['original_y']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("La coordenada y original està en blanc a la columna 12")
-        #     register_error(line_counter, "La coordenada y original està en blanc a la columna 12", problemes)
-        # else:
-        #     try:
-        #         float(line[FIELD_MAP['original_y']['index']].strip().replace(",", "."))
-        #         coordY_original = line[FIELD_MAP['original_y']['index']].replace(",", ".")
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error de conversió a la coordenada y original " + line[FIELD_MAP['original_y']['index']] +  ", columna 11")
-        #         register_error(line_counter, "Error de conversió a la coordenada y original " + line[FIELD_MAP['original_y']['index']] +  ", columna 11", problemes)
-
-        # # depth_max_height
-        # if line[FIELD_MAP['depth_max_height']['index']] is None or line[FIELD_MAP['depth_max_height']['index']].strip().lower() == '':
-        #     depth_max_height = None
-        # else:
-        #     try:
-        #         float(line[FIELD_MAP['depth_max_height']['index']].strip().replace(",", "."))
-        #         depth_max_height = line[FIELD_MAP['depth_max_height']['index']].replace(",", ".")
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error de conversió a l'altitud de profunditat màxima (m) " + line[FIELD_MAP['depth_max_height']['index']] +  ", columna 12")
-        #         register_error(line_counter, "Error de conversió a l'altitud de profunditat màxima (m)" + line[FIELD_MAP['depth_max_height']['index']] +  ", columna 12", problemes)
-
-        # # depth_min_height
-        # if line[FIELD_MAP['depth_max_height']['index']] is None or line[FIELD_MAP['depth_max_height']['index']].strip().lower() == '':
-        #     depth_max_height = None
-        # else:
-        #     try:
-        #         float(line[FIELD_MAP['depth_max_height']['index']].strip().replace(",", "."))
-        #         depth_max_height = line[FIELD_MAP['depth_max_height']['index']].replace(",", ".")
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error de conversió a l'altitud de profunditat màxima (m) " + line[FIELD_MAP['depth_max_height']['index']] +  ", columna 12")
-        #         register_error(line_counter, "Error de conversió a l'altitud de profunditat màxima (m)" + line[FIELD_MAP['depth_max_height']['index']] +  ", columna 12", problemes)
+        if is_empty_field(line[FIELD_MAP_DWC['date']['index']]):
+            data = None
+        else:
+            try:
+                #data = datetime.strptime(line[8].strip(), '%d/%m/%Y')
+                data = parser.parse(line[8].strip())
+            except ValueError:
+                errorsALinia = True
+                errorsLiniaActual.append("Error convertint " + line[FIELD_MAP_DWC['date']['index']] + " a format data a  la columna {}".format(FIELD_MAP_DWC['date']['index']))
+                register_error(line_counter, "Error convertint " + line[FIELD_MAP_DWC['date']['index']] + " a format data a  la columna {}".format(FIELD_MAP_DWC['date']['index']), problemes)
 
         
-        # # incertesa coordenades h
-        # if line[FIELD_MAP['coordinate_uncertainty']['index']] is not None and not line[FIELD_MAP['coordinate_uncertainty']['index']].strip().lower() == '':
-        #     try:
-        #         precisioH = float(line[FIELD_MAP['coordinate_uncertainty']['index']].strip().replace(",", "."))
-        #     except ValueError:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("Error de conversió a incertesa de coordenades " + line[FIELD_MAP['coordinate_uncertainty']['index']] +  ", columna 14")
-        #         register_error(line_counter, "Error de conversió a incertesa de coordenades " + line[FIELD_MAP['coordinate_uncertainty']['index']] +  ", columna 14", problemes)        
+        if is_empty_field(line[FIELD_MAP_DWC['georeferencer']['index']]):
+            errorsALinia = True
+            errorsLiniaActual.append("Georeferenciador en blanc a la columna {}".format(FIELD_MAP_DWC['georeferencer']['index']))
+            register_error(line_counter, "Georeferenciador en blanc a la columna {}".format(FIELD_MAP_DWC['georeferencer']['index']), problemes)
+        else:
+            georeferenciador = get_georeferencer_by_name_simple(line[FIELD_MAP_DWC['georeferencer']['index']].strip())
+            if georeferenciador is None:
+                errorsALinia = True
+                errorsLiniaActual.append("No trobo el georeferenciador " + line[FIELD_MAP_DWC['georeferencer']['index']] +  ", columna {}".format(FIELD_MAP_DWC['georeferencer']['index']))
+                register_error(line_counter, "No trobo el georeferenciador " + line[FIELD_MAP_DWC['georeferencer']['index']] +  ", columna {}".format(FIELD_MAP_DWC['georeferencer']['index']), problemes)
 
-        # # georeferenciador versio
-        # if line[FIELD_MAP['georeferencer']['index']] is None or line[FIELD_MAP['georeferencer']['index']].strip().lower() == '':
-        #     errorsALinia = True
-        #     errorsLiniaActual.append("Georeferenciador en blanc a la columna 15")
-        #     register_error(line_counter, "Georeferenciador en blanc a la columna 15", problemes)
-        # else:
-        #     georeferenciador = get_georeferencer_by_name_simple(line[FIELD_MAP['georeferencer']['index']].strip())
-        #     if georeferenciador is None:
-        #         errorsALinia = True
-        #         errorsLiniaActual.append("No trobo el georeferenciador " + line[FIELD_MAP['georeferencer']['index']] +  ", columna 15")
-        #         register_error(line_counter, "No trobo el georeferenciador " + line[FIELD_MAP['georeferencer']['index']] +  ", columna 15", problemes)
+        # depth_max_height
+        if is_empty_field(line[FIELD_MAP_DWC['depth_max_height']['index']]):
+            depth_max_height = None
+        else:
+            try:
+                float(line[FIELD_MAP_DWC['depth_max_height']['index']].strip().replace(",", "."))
+                depth_max_height = line[FIELD_MAP_DWC['depth_max_height']['index']].replace(",", ".")
+            except ValueError:
+                errorsALinia = True
+                errorsLiniaActual.append("Error de conversió a l'altitud de profunditat màxima (m) " + line[FIELD_MAP_DWC['depth_max_height']['index']] +  ", columna {}".format(FIELD_MAP_DWC['depth_max_height']['index']))
+                register_error(line_counter, "Error de conversió a l'altitud de profunditat màxima (m)" + line[FIELD_MAP_DWC['depth_max_height']['index']] +  ", columna {}".format(FIELD_MAP_DWC['depth_max_height']['index']), problemes)
 
-        # if len(line) > 15:
-        #     observacions = line[FIELD_MAP['observations']['index']]
-        # else:
-        #     observacions = ''
+        # depth_min_height
+        if is_empty_field(line[FIELD_MAP_DWC['depth_min_height']['index']]):
+            depth_min_height = None
+        else:
+            try:
+                float(line[FIELD_MAP_DWC['depth_min_height']['index']].strip().replace(",", "."))
+                depth_min_height = line[FIELD_MAP_DWC['depth_min_height']['index']].replace(",", ".")
+            except ValueError:
+                errorsALinia = True
+                errorsLiniaActual.append("Error de conversió a l'altitud de profunditat mínima (m) " + line[FIELD_MAP_DWC['depth_min_height']['index']] +  ", columna {}".format(FIELD_MAP_DWC['depth_min_height']['index']))
+                register_error(line_counter, "Error de conversió a l'altitud de profunditat mínima (m)" + line[FIELD_MAP_DWC['depth_min_height']['index']] +  ", columna {}".format(FIELD_MAP_DWC['depth_min_height']['index']), problemes)
+        
+        observacions = line[FIELD_MAP_DWC['observations']['index']]
+
+        if not is_empty_field(line[FIELD_MAP_DWC['site_geometry']['index']]):
+            if is_empty_field( line[FIELD_MAP_DWC['site_srs']['index']]):
+                errorsALinia = True
+                errorsLiniaActual.append("Hi ha una geometria, però no hi ha sistema de referència definit columna {}".format(FIELD_MAP_DWC['site_srs']['index']))
+                register_error(line_counter, "Hi ha una geometria, però no hi ha sistema de referència definit a la columna {}".format(FIELD_MAP_DWC['site_srs']['index']), problemes)
+            else:
+                srid_text = line[FIELD_MAP_DWC['site_srs']['index']]
+                srid = srid_text.split(":")[1]
+                try:
+                    geometria = parse_geometry( line[FIELD_MAP_DWC['site_geometry']['index']], srid=srid )
+                    sec = compute_sec(geometria,max_points_polygon=10000, tolerance=500, sample_size=50, n_nearest=10)
+                    decimal_longitude = sec['center_wgs84'].x
+                    decimal_latitude = sec['center_wgs84'].y
+                    coordinate_uncertainty = sec['radius']
+
+
+                except ValueError:
+                    errorsALinia = True
+                    errorsLiniaActual.append("Error creant geometria a partir de text, si us plau repassa que no hi hagi errors", "columna 12")
+                    register_error(line_counter, "Error creant geometria a partir de text, si us plau repassa que no hi hagi errors", problemes)
+                
 
         if errorsALinia:
             errorsLinia.insert(0, line_counter)
@@ -269,31 +240,33 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         else:
             t = Toponim()
             t.nom = site_name
-            # t.idtipustoponim = tt
-            # t.aquatic = aquatic
-            # t.idpare = pare
+            t.idtipustoponim = tt
+            t.aquatic = aquatic
+            t.idpare = pare
 
-            # t.nom_fitxer_importacio = nomFitxer
-            # t.linia_fitxer_importacio = line_string
+            t.nom_fitxer_importacio = nomFitxer
+            t.linia_fitxer_importacio = line_string
 
             tv = Toponimversio()
 
-            # tv.numero_versio = numeroVersio
-            # tv.nom = nomToponimRecurs
-            # tv.datacaptura = data
-            # tv.coordenada_x_origen = coordX_original
-            # tv.coordenada_y_origen = coordY_original
-            # tv.altitud_profunditat_maxima = depth_max_height
-            # tv.altitud_profunditat_minima = depth_min_height
-            # tv.observacions = observacions
+            tv.numero_versio = 1
+            tv.nom = site_name
+            tv.datacaptura = data
+            
+            tv.altitud_profunditat_maxima = depth_max_height
+            tv.altitud_profunditat_minima = depth_min_height
+            tv.observacions = observacions
 
-            # tv.iduser = georeferenciador
+            tv.iduser = georeferenciador
             # if precisioH is not None:
             #     tv.precisio_h = precisioH
-            # tv.idqualificador = qv
-            # tv.idrecursgeoref = rg
-            # tv.idtoponim = t            
+            tv.idrecursgeoref = rg
+            # tv.idtoponim = t    
+            # 
+            gtv = GeometriaToponimVersio()        
+            gtv.geometria = geometria
 
-            toponims_to_create.append({ 'toponim': t, 'versio': tv })
+
+            toponims_to_create.append({ 'toponim': t, 'versio': tv, 'geometria': gtv })
     else:
         toponims_exist.append(t)

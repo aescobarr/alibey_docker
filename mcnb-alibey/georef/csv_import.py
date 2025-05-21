@@ -2,10 +2,10 @@ from georef.models import Toponim, Tipustoponim, Pais, Qualificadorversio, Recur
 from django.contrib.auth.models import User
 from datetime import datetime
 from dateutil import parser
-from django.db.models import Q
+
 import operator, functools
 import re
-from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, get_model_by_attribute, get_georeferencer_by_name_simple
 
 
 FIELD_MAP = {
@@ -37,17 +37,6 @@ def check_file_structure(file_array):
         numlinia = numlinia + 1
 
 
-def get_georeferencer_by_name_simple(name):
-    name_parts = name.split(' ')
-    name_fusioned = ('').join( [u.strip().lower() for u in name_parts] )
-    for u in User.objects.all():
-        username_parts = u.first_name.strip().lower().split(' ') + u.last_name.strip().lower().split(' ')
-        username_fusioned = ('').join( username_parts )
-        if name_fusioned == username_fusioned:
-            return u
-    return None
-
-
 def get_georeferencer_by_name(name):
     name_parts = name.split(' ')
     filter_clause = []
@@ -62,14 +51,6 @@ def get_georeferencer_by_name(name):
             except User.DoesNotExist:
                 pass
     return None
-
-
-def get_model_by_attribute(attribute_name, attribute_value, model_name):
-    try:
-        filter_clause = Q(**{ attribute_name + '__iexact' : attribute_value } )
-        return model_name.objects.get(filter_clause)
-    except model_name.DoesNotExist:
-        return None
 
 
 def find_all(a_str, sub):
