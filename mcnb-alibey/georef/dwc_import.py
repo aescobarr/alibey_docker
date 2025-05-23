@@ -1,4 +1,5 @@
-from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, get_model_by_attribute, get_georeferencer_by_name_simple, is_empty_field
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, \
+    get_model_by_attribute, get_georeferencer_by_name_simple, is_empty_field, get_toponim_nom_estructurat, find_all
 from georef.models import Toponim, Toponimversio, Tipustoponim, Recursgeoref
 from georef_addenda.models import GeometriaToponimVersio
 from dateutil import parser
@@ -25,8 +26,8 @@ def check_file_structure_dwc(file_array):
     numlinia = 1
     for rows in file_array:
         if len(rows) != len(FIELD_MAP_DWC):
-            raise NumberOfColumnsException({"numrow": str(numlinia), "numcols": str(len(rows))})
-        numlinia = numlinia + 1
+            raise NumberOfColumnsException({"numrow": str(numlinia), "numcols": str(len(rows)), "numcols_expected": str(len(FIELD_MAP_DWC)) })
+        numlinia = numlinia + 1    
 
 def register_error(num_line, message, problems):
     lineNums = []
@@ -126,25 +127,26 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
                     errorsLiniaActual.append("No s'ha trobat el tipus de toponim '" + toponim_type_str + "' a la columna {}".format(FIELD_MAP_DWC['site_name']['index']))
                     register_error(line_counter, "No s'ha trobat el tipus de toponim '" + toponim_type_str + "' a la columna {}".format(FIELD_MAP_DWC['site_name']['index']), problemes)        
 
-        if is_empty_field(FIELD_MAP_DWC['geography_list']['index']):
+        if is_empty_field(line[FIELD_MAP_DWC['geography_list']['index']]):            
             errorsALinia = True
             errorsLiniaActual.append("Geografies superiors en blanc a la columna {}".format(FIELD_MAP_DWC['geography_list']['index']))
             register_error(line_counter, "Geografies superiors en blanc a la columna {}".format(FIELD_MAP_DWC['geography_list']['index']), problemes)
         else:
             #check all sites in the chain exist and are hyerarchical
-            clean_names = [token.strip() for token in line(FIELD_MAP_DWC['geography_list']['index']).split("|")]
+            clean_names = [token.strip() for token in line[FIELD_MAP_DWC['geography_list']['index']].split("|")]
             model = None
             found = []
             not_found = []
             for name in clean_names:
-                model = get_model_by_attribute('nom', name, Toponim)
+                # model = get_model_by_attribute('nom', name, Toponim)
+                model = get_toponim_nom_estructurat(name)
                 if model is not None:
                     found.append("True")
                 else:
                     found.append("False")
                     not_found.append(name)
             if all(found):
-                pare = model
+                pare = model.first()
             else:
                 errorsALinia = True
                 errorsLiniaActual.append("Geografies superiors no trobades a la columna {0} : {1}".format( FIELD_MAP_DWC['geography_list']['index'], ','.join(not_found) ))
@@ -167,7 +169,7 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         else:
             try:
                 #data = datetime.strptime(line[8].strip(), '%d/%m/%Y')
-                data = parser.parse(line[8].strip())
+                data = parser.parse(line[FIELD_MAP_DWC['date']['index']].strip())
             except ValueError:
                 errorsALinia = True
                 errorsLiniaActual.append("Error convertint " + line[FIELD_MAP_DWC['date']['index']] + " a format data a  la columna {}".format(FIELD_MAP_DWC['date']['index']))

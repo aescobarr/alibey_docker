@@ -5,8 +5,7 @@ from dateutil import parser
 
 import operator, functools
 import re
-from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, get_model_by_attribute, get_georeferencer_by_name_simple
-
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, toponim_exists, get_model_by_attribute, get_georeferencer_by_name_simple, get_toponim_nom_estructurat, find_all
 
 FIELD_MAP = {
     'name': { 'index': 0, 'mandatory': True },
@@ -33,7 +32,7 @@ def check_file_structure(file_array):
     numlinia = 1
     for rows in file_array:
         if len(rows) != len(FIELD_MAP):
-            raise NumberOfColumnsException({"numrow": str(numlinia), "numcols": str(len(rows))})
+            raise NumberOfColumnsException({"numrow": str(numlinia), "numcols": str(len(rows)), "numcols_expected": str(len(FIELD_MAP)) })
         numlinia = numlinia + 1
 
 
@@ -50,50 +49,6 @@ def get_georeferencer_by_name(name):
                 return User.objects.get(functools.reduce(operator.and_, filter_clause))
             except User.DoesNotExist:
                 pass
-    return None
-
-
-def find_all(a_str, sub):
-    start = 0
-    while True:
-        start = a_str.find(sub, start)
-        if start == -1: return
-        yield start
-        start += len(sub) # use start += 1 to find overlapping matches
-
-def get_toponim_nom_estructurat(nom_toponim):
-    if nom_toponim != '':
-        if 'terrestre' in nom_toponim.lower() or 'aquàtic' in nom_toponim.lower():
-            filter_clause = []
-            sep_character_apparitions = [i for i in find_all(nom_toponim,'-')]
-            if len(sep_character_apparitions) > 1:
-                last_index_sep = sep_character_apparitions[-1]
-                nom_info_addicional = []
-                nom_info_addicional.append(nom_toponim[:last_index_sep].strip())
-                nom_info_addicional.append(nom_toponim[(last_index_sep + 1):].strip())
-            else:
-                nom_info_addicional = nom_toponim.split('-')
-            nom = nom_info_addicional[0].strip()
-            info_addicional = nom_info_addicional[1].strip().split('(')
-            pais = info_addicional[0].strip().lower()
-            tipusToponim = info_addicional[1].replace(")", "").strip().lower()
-            aquatic = info_addicional[2].replace(")", "").strip().lower() != 'terrestre'
-            aquatic_string = ''
-            if aquatic == True:
-                aquatic_string = 'S'
-            else:
-                aquatic_string = 'N'
-            p = get_model_by_attribute('nom', pais, Pais)
-            tt = get_model_by_attribute('nom', tipusToponim, Tipustoponim)
-            if p is not None:
-                filter_clause.append( Q(**{ 'idpais' : p } ) )
-            if tt is not None:
-                filter_clause.append(Q(**{ 'idtipustoponim' : tt } ) )
-            filter_clause.append(Q(**{ 'aquatic' : aquatic_string } ) )
-            filter_clause.append(Q(**{'nom': nom}))
-            return Toponim.objects.filter(functools.reduce(operator.and_, filter_clause))
-        else:
-            return Toponim.objects.filter(nom__icontains=nom_toponim)
     return None
 
 

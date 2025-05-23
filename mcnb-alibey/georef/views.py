@@ -96,6 +96,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.contrib import messages
+from georef.import_utils import NumberOfColumnsException, EmptyFileException
 
 
 def get_order_clause(params_dict, translation_dict=None):
@@ -1825,7 +1826,7 @@ def toponims_list_dwc(request):
             geom = versio.union_geometry()
             writer.writerow([
                 record['nom_str'], 
-                toponim.get_denormalized_toponimtree_str(), 
+                toponim.get_denormalized_toponimtree_fullname(), 
                 georef_sources, 
                 srs, 
                 versio.datacaptura, 
@@ -1843,7 +1844,7 @@ def toponims_list_dwc(request):
         else:
             writer.writerow([
                 record['nom_str'], 
-                toponim.get_denormalized_toponimtree_str(),
+                toponim.get_denormalized_toponimtree_fullname(),
                 '',
                 '',
                 '',
@@ -2443,8 +2444,11 @@ def cleanup_excel_line_item(x):
 def perform_import(request, file_name, check_file_structure_function, process_line_function):
     if file_name is None or file_name.strip() == '':
         content = {'status': 'KO', 'detail': 'mandatory param missing'}
-        return Response(data=content, status=400)
+        return Response(data=content, status=400)    
     filepath = UPLOAD_DIR + '/' + file_name
+    if os.path.getsize(filepath) == 0:
+        content = {'status': 'KO', 'detail': _('El fitxer és buit')}
+        return Response(data=content, status=400)    
     filename = ntpath.basename(os.path.splitext(filepath)[0])
     #file_type = magic.from_file(filepath)
     file_type = determine_import_file_type(filepath)
@@ -2470,8 +2474,8 @@ def perform_import(request, file_name, check_file_structure_function, process_li
                     #check_file_structure(file_array)
                     check_file_structure_function(file_array)
                 except NumberOfColumnsException as n:
-                    details = n.args[0]
-                    msg = "Problema amb l'estructura del fitxer. S'esperaven 16 columnes i se n'han trobat " + details["numcols"] + " a la fila " + details["numrow"]
+                    details = n.args[0]                    
+                    msg = "Problema amb l'estructura del fitxer. S'esperaven {0} columnes i se n'han trobat {1} a la fila {2}".format(details["numcols_expected"], details["numcols"], details["numrow"]) 
                     errors.append(msg)
                 except EmptyFileException as e:
                     msg = "Sembla que el fitxer té menys de 2 línies"
@@ -2484,7 +2488,7 @@ def perform_import(request, file_name, check_file_structure_function, process_li
                 if len(errors) == 0:
                     for fila, linia in zip(file_array[1:], raw_lines[1:]):
                         try:
-                            process_line(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
+                            process_line_function(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
                             contador_fila += 1
                         except:
                             e = sys.exc_info()[0]
@@ -2498,10 +2502,21 @@ def perform_import(request, file_name, check_file_structure_function, process_li
             else:
                 for toponim_and_versio in toponims_to_create:
                     t = toponim_and_versio['toponim']
-                    v = toponim_and_versio['versio']
+                    v = toponim_and_versio['versio']                    
+
                     t.save()
                     v.idtoponim = t
                     v.save()
+
+                    geom = None
+                    try:
+                        geom = toponim_and_versio['geometria']
+                    except KeyError:
+                        pass
+                    if geom is not None:
+                        geom.idversio = v
+                        geom.save()
+
                 success_report = create_success_report(toponims_to_create, toponims_exist)
                 filelink = create_result_csv(toponims_to_create, toponims_exist, request)
                 content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
@@ -2550,6 +2565,15 @@ def perform_import(request, file_name, check_file_structure_function, process_li
                     t.save()
                     v.idtoponim = t
                     v.save()
+
+                    geom = None
+                    try:
+                        geom = toponim_and_versio['geometria']
+                    except KeyError:
+                        pass
+                    if geom is not None:
+                        geom.idversio = v
+                        geom.save()
                 success_report = create_success_report(toponims_to_create, toponims_exist)
                 filelink = create_result_csv(toponims_to_create, toponims_exist, request)
                 content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
@@ -2557,11 +2581,13 @@ def perform_import(request, file_name, check_file_structure_function, process_li
 
 @api_view(['POST'])
 def import_toponims_dwc(request, file_name=None):
-    perform_import(request, file_name, check_file_structure_dwc, process_line_dwc)
+    retVal = perform_import(request, file_name, check_file_structure_dwc, process_line_dwc)
+    return retVal
 
 @api_view(['POST'])
 def import_toponims(request, file_name=None):
-    perform_import(request, file_name, check_file_structure, process_line)
+    retVal = perform_import(request, file_name, check_file_structure, process_line)
+    return retVal
     # if file_name is None or file_name.strip() == '':
     #     content = {'status': 'KO', 'detail': 'mandatory param missing'}
     #     return Response(data=content, status=400)
