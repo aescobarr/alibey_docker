@@ -16,8 +16,9 @@ FIELD_MAP_DWC = {
     "depth_max_height": { "index": 5 },
     "depth_min_height": { "index": 6 },
     "observations": { "index": 7 },
-    "site_geometry": { "index": 8},
-    "site_srs": { "index": 9 }
+    "precisio_h": { "index": 8},
+    "site_geometry": { "index": 9},
+    "site_srs": { "index": 10 }
 }
 
 def check_file_structure_dwc(file_array):
@@ -68,27 +69,15 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         # # [2] - Aquatic --> Cap comprovacio
         aquatic = 'N'
         # # [3] - Node superior --> Buscar toponim per nom(multiples resultats?)
-        pare = None
-        # # [4] - Numero de versio
-        # numeroVersio = -1
-        # # [5] - Qualificador de la versió
-        # qv = None
+        pare = None        
         # # [6] - Versio capturada del recurs RecursGeoreferenciacio
-        rg = None
-        # # [7] - Nom del toponim al recurs
-        # nomToponimRecurs = None
-        # # [8] - Data
-        # data = None
-        # # [9] - Coord x original
-        # coordX_original = None
-        # # [10] - Coord y original
-        # coordY_original = None
+        rg = None        
         # # [11] - depth_max_height
         depth_max_height = None
         # # [12] - depth_min_height
         depth_min_height = None
-        # # [13] - Incertesa de coordenada
-        # precisioH = None
+        # [13] - Incertesa de coordenada
+        precisioH = None
         # # [13] - Incertesa h
         # #precisioZ = None
         # # [14] - Georeferenciador
@@ -212,6 +201,14 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
                 register_error(line_counter, "Error de conversió a l'altitud de profunditat mínima (m)" + line[FIELD_MAP_DWC['depth_min_height']['index']] +  ", columna {}".format(FIELD_MAP_DWC['depth_min_height']['index']), problemes)
         
         observacions = line[FIELD_MAP_DWC['observations']['index']]
+    
+        if not is_empty_field(line[FIELD_MAP_DWC['precisio_h']['index']]):
+            try:
+                precisioH = float(line[FIELD_MAP_DWC['precisio_h']['index']].strip().replace(",", "."))
+            except ValueError:
+                errorsALinia = True
+                errorsLiniaActual.append("Error de conversió a incertesa de coordenades " + line[FIELD_MAP['coordinate_uncertainty']['index']] +  ", columna 14")
+                register_error(line_counter, "Error de conversió a incertesa de coordenades " + line[FIELD_MAP['coordinate_uncertainty']['index']] +  ", columna 14", problemes)
 
         if not is_empty_field(line[FIELD_MAP_DWC['site_geometry']['index']]):
             if is_empty_field( line[FIELD_MAP_DWC['site_srs']['index']]):
@@ -226,7 +223,8 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
                     sec = compute_sec(geometria,max_points_polygon=10000, tolerance=500, sample_size=50, n_nearest=10)
                     decimal_longitude = sec['center_wgs84'].x
                     decimal_latitude = sec['center_wgs84'].y
-                    coordinate_uncertainty = sec['radius']
+                    if precisioH is None:
+                        precisioH = sec['radius']
 
 
                 except ValueError:
@@ -260,11 +258,11 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
             tv.observacions = observacions
 
             tv.iduser = georeferenciador
-            # if precisioH is not None:
-            #     tv.precisio_h = precisioH
+            if precisioH is not None:
+                tv.precisio_h = precisioH
             tv.idrecursgeoref = rg
             # tv.idtoponim = t    
-            # 
+            #             
             gtv = GeometriaToponimVersio()        
             gtv.geometria = geometria
 
