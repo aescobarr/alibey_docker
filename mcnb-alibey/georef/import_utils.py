@@ -11,6 +11,9 @@ class EmptyFileException(Exception):
     pass
 
 
+class MissingColumnException(Exception):
+    pass
+
 def get_model_by_attribute(attribute_name, attribute_value, model_name):
     try:
         filter_clause = Q(**{ attribute_name + '__iexact' : attribute_value } )

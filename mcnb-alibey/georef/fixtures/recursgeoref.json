@@ -1,0 +1,10 @@
+[
+    {
+        "model": "georef.recursgeoref",
+        "pk": "0dbd9997-e68e-4f40-b4bf-004aa8cea037",
+        "fields":
+        {
+            "nom": "recurs_georef"            
+        }
+    }
+]

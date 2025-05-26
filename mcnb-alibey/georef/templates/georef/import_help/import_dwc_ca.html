@@ -1,0 +1,127 @@
+<p>La importació en format Darwin Core permet els formats següents:</p>
+<ul>
+    <li>
+        <p>EXCEL: Fitxer excel de Microsoft</p>
+    </li>
+    <li>
+        <p>
+            CSV: El fitxer ha de ser un csv vàlid, amb el símbol ';' com a separador de columnes. Es considera que el
+            fitxer té una primera fila amb els noms de columnes, de manera que la primera línia del fitxer no es
+            processa mai. Per evitar problemes amb caràcters especials,el fitxer hauria de tenir codificació UTF-8.
+        </p>
+    </li>
+</ul>
+<p>
+    A continuació es mostra el llistat de columnes que ha de contenir el fitxer. L'ordre no és important, però sí que és important
+    el nom de la columna. El nom correcte de la columna és el que hi ha entre parèntesi. Les columnes obligatòries es mostren en vermell:    
+</p>
+<p>
+<ul>
+    <li style="color:red;">
+        <b>Nom del topònim (<a href="https://dwc.tdwg.org/terms/#dwc:locality" target="_blank">locality</a>).</b>
+        <ul>
+            <li>
+                El nom del topònim ha de ser de la forma: [nom] - [país] ([tipus_topònim]) (Aquàtic|Terrestre).
+            </li>
+            <li>
+                El [nom] pot ser qualsevol cadena de text, per exemple "Calonge de Segarra". No pot estar en blanc.
+            </li>
+            <li>
+                El [país] és opcional. En aquest camp es pot indicar el nom de qualsevol país, que ha d'estar present
+                al tesaure de Països. Si no, es deixa en blanc.
+            </li>
+            <li>
+                El [tipus_topònim] és obligatori. En aquest camp es pot indicar qualsevol valor del tesaure de tipus de
+                topònims.
+            </li>
+            <li>
+            Finalment, cal indicar si el topònim és aquàtic o terrestre.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Geografies superiors (<a href="https://dwc.tdwg.org/terms/#dwc:higherGeography" target="_blank">higherGeography</a>)</b>
+        <ul>
+            <li>Aquest camp és una cadena del llinatge del topònim. És una llista de noms de topònims, separats per el
+                caràcter '|'. El topònim més a la dreta és el topònim immediatament superior al topònim que estem
+                important.</li>
+            <li>Per exemple, si estem important el topònim "Calonge de Segarra", la cadena seria "Europa -  (continent) (Terrestre) | Espanya - Espanya (estat) (Terrestre) | Catalunya - Espanya (comunitat autònoma) (Terrestre) | Lleida - Catalunya (província) (Terrestre) | Urgell - Espanya (comarca) (Terrestre)", indicant que "Calonge de Segarra" es troba a l'Anoia.
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Versió capturada del recurs (<a href="https://dwc.tdwg.org/terms/#dwc:georeferenceSources" target="_blank">georeferenceSources</a>)</b>
+        <ul>
+            <li>Nom del recurs de georeferenciació usat. Aquest ha d'estar present a la llista de Recursos</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Coordenada x original (<a href="https://dwc.tdwg.org/terms/#dwc:verbatimLongitude" target="_blank">verbatimLongitude</a>)</b>
+        <ul>
+            <li>Coordenada x original del topònim, en les unitats originals (ja siguin metres o latitud/longitud)</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Coordenada x original (<a href="https://dwc.tdwg.org/terms/#dwc:verbatimLongitude" target="_blank">verbatimLatitude</a>)</b>
+        <ul>
+            <li>Coordenada y original del topònim, en les unitats originals (ja siguin metres o latitud/longitud)</li>
+        </ul>
+    </li>
+    <li>
+        <b>Data (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedDate" target="_blank">georeferencedDate</a>)</b>
+        <ul>
+            <li>
+                Data de la georeferenciació, en format YYYY-MM-DD (p.ex 2009-03-05). Si no s'indica es posa la data en
+                la qual es va fer la importació.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Georeferenciador (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedBy" target="_blank">georeferencedBy</a>)</b>
+        <ul>
+            <li>
+                Nom del georeferenciador, en la forma [nom, cognom]. Si no s'indica, s'assignarà la persona que està
+                fent la importació.
+            </li>
+        </ul>
+    </li>
+    <li>
+        <b>Altitud profunditat màxima(m) (<a href="https://dwc.tdwg.org/terms/#dwc:maximumDepthInMeters target="_blank">maximumDepthInMeters</a>)</b>
+        <ul>
+            <li>Profunditat màxima, en número de metres. Es permeten decimals. Aquest camp no és obligatori.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Altitud profunditat mínima(m) (<a href="https://dwc.tdwg.org/terms/#dwc:minimumDepthInMeters" target="_blank">minimumDepthInMeters</a>)</b>
+        <ul>
+            <li>Profunditat mínima, en número de metres. Es permeten decimals. Aquest camp no és obligatori.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Observacions (<a href="https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks" target="_blank">georeferenceRemarks</a>)</b>
+        <ul>
+            <li>Observacions del procés de georeferenciació. No obligatori.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Geometria del topònim (<a href="https://dwc.tdwg.org/terms/#dwc:footprintWKT" target="_blank">footprintWKT</a>)</b>
+        <ul>
+            Geometria en format WKT (well known text) del topònim. Aquesta geometria s'usarà per calcular el centroide
+            del topònim i l'incertesa de coordenades.
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Sistema de referència de la geometria (<a href="https://dwc.tdwg.org/terms/#dwc:footprintSRS" target="_blank">footprintSRS</a>)</b>
+        <ul>
+            <li>Identificador amb el codi EPSG del sistema de referència (per exemple, "epsg:4326")</li>
+        </ul>
+    </li>
+</ul>
+</p>
+<p>
+    En carregar el fitxer, es repassen totes les files del mateix per 
+    comprovar que no hi hagi errors. Si n'hi ha, es mostrarà una finestra amb un
+    llistat dels mateixos indicant la línia i columna problemàtiques. Caldrà que
+    l'usuari resolgui tots aquests errors abans de carregar les dades.Un cop
+    carregades, es mostrarà un informe de sortida amb un llistat dels registres
+    que s'han afegit. Es podrà descarregar l'informe de sortida en format csv.
+</p>

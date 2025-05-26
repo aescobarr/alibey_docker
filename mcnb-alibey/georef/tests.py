@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
+from georef.dwc_import import process_line_dwc
 import sys
+import csv
 
 from georef.sec_calculation import geometry_from_json, wgs_to_azimuthal_eq, get_vertex_n, \
     simplify_geometry, get_minimum_bounding_circle, point_is_in_geometry, sample_geometry, closest_vertex_on_geometry, \
@@ -275,6 +277,7 @@ def get_geometry_from_file(filename):
 #                         self.assertTrue( best_sec_radius < worst_d['radius'], "Uncertainty radius of non optimal solution {0} should be grater than optimal solution {1}".format(worst_d, best_sec_radius))
 
 class ImportDWCTests(TestCase):
+    fixtures = ["tipustoponim.json", "recursgeoref.json", "users.json"]
     def test_parse_name(self):
         name = "Calaf - Espanya (municipi) (Terrestre)"        
         retVal = parse_valid_name(name)
@@ -287,3 +290,30 @@ class ImportDWCTests(TestCase):
         self.assertIsNotNone(parse_valid_name(name),"{} - should be valid, is not".format(name))
         name = "Calaf - (municipi)    (Terrestre)"
         self.assertIsNotNone(parse_valid_name(name),"{} - should be valid, is not".format(name))
+
+    def test_parse_dwc_file(self):
+        file_array = []
+        raw_lines = []
+        csv_file = "./georef/test_files/wkt_polygons.csv"
+        contador_fila = 1
+        problems = {}
+        errors = []
+
+        with open(csv_file) as f:
+            raw_lines = f.readlines()
+        raw_lines = [x.strip() for x in raw_lines]
+        
+        with open(csv_file,'rt') as csvfile:                
+            dialect = csv.Sniffer().sniff(csvfile.readline())
+            csvfile.seek(0)
+            reader = csv.reader(csvfile,dialect)
+            for row in reader:
+                file_array.append(row)
+        
+        toponims_exist = []
+        toponims_to_create = []
+        fila = file_array[1]
+        linia = raw_lines[1]        
+        
+        process_line_dwc(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( "\n".join(errors) ))

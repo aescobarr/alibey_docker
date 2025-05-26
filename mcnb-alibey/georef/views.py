@@ -67,7 +67,7 @@ from shutil import rmtree
 from georef.jsonprefs import JsonPrefsUtil
 import pyproj
 from georef.csv_import import check_file_structure, process_line
-from georef.dwc_import import check_file_structure_dwc, process_line_dwc
+from georef.dwc_import import check_file_structure_dwc, process_line_dwc, adjust_dwc_row_map
 from django.db import connection
 
 from georef.permissions import HasAdministrativePermission
@@ -96,7 +96,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.contrib import messages
-from georef.import_utils import NumberOfColumnsException, EmptyFileException
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, MissingColumnException
 
 
 def get_order_clause(params_dict, translation_dict=None):
@@ -1559,7 +1559,9 @@ def recursos_list_xls(request):
 
 @login_required
 def toponims_dwc_import(request):
-    context = {}
+    locale = request.LANGUAGE_CODE
+    help_template = 'georef/import_help/import_dwc_{0}.html'.format( locale )
+    context = {'help_template': help_template}
     return render(request, 'georef/toponims_dwc_import.html', context)
 
 
@@ -2437,11 +2439,11 @@ def determine_import_file_type(file_path):
 def cleanup_excel_line_item(x):
     pre_clean = str(x).strip()
     if pre_clean == 'nan':
-        return '';
+        return ''
     return pre_clean
 
 
-def perform_import(request, file_name, check_file_structure_function, process_line_function):
+def perform_import(request, file_name, check_file_structure_function, check_headers_function, process_line_function):
     if file_name is None or file_name.strip() == '':
         content = {'status': 'KO', 'detail': 'mandatory param missing'}
         return Response(data=content, status=400)    
@@ -2473,6 +2475,11 @@ def perform_import(request, file_name, check_file_structure_function, process_li
                 try:
                     #check_file_structure(file_array)
                     check_file_structure_function(file_array)
+                    if check_headers_function is not None:
+                        check_headers_function(raw_lines[0])
+                except MissingColumnException as n:
+                    details = n.args[0]
+                    errors.append(details)
                 except NumberOfColumnsException as n:
                     details = n.args[0]                    
                     msg = "Problema amb l'estructura del fitxer. S'esperaven {0} columnes i se n'han trobat {1} a la fila {2}".format(details["numcols_expected"], details["numcols"], details["numrow"]) 
@@ -2581,12 +2588,12 @@ def perform_import(request, file_name, check_file_structure_function, process_li
 
 @api_view(['POST'])
 def import_toponims_dwc(request, file_name=None):
-    retVal = perform_import(request, file_name, check_file_structure_dwc, process_line_dwc)
+    retVal = perform_import(request, file_name, check_file_structure_dwc, adjust_dwc_row_map, process_line_dwc)
     return retVal
 
 @api_view(['POST'])
 def import_toponims(request, file_name=None):
-    retVal = perform_import(request, file_name, check_file_structure, process_line)
+    retVal = perform_import(request, file_name, check_file_structure, None, process_line)
     return retVal
     # if file_name is None or file_name.strip() == '':
     #     content = {'status': 'KO', 'detail': 'mandatory param missing'}
