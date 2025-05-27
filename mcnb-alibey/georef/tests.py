@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
-from georef.dwc_import import process_line_dwc
+from georef.dwc_import import process_line_dwc, FIELD_MAP_DWC
+from dateutil import parser
+from datetime import date
 import sys
 import csv
 
@@ -291,29 +293,129 @@ class ImportDWCTests(TestCase):
         name = "Calaf - (municipi)    (Terrestre)"
         self.assertIsNotNone(parse_valid_name(name),"{} - should be valid, is not".format(name))
 
-    def test_parse_dwc_file(self):
+    def read_csv_test_file(self, filename):
         file_array = []
         raw_lines = []
-        csv_file = "./georef/test_files/wkt_polygons.csv"
-        contador_fila = 1
-        problems = {}
-        errors = []
-
-        with open(csv_file) as f:
+        # csv_file = "./georef/test_files/wkt_polygons.csv"
+        
+        with open(filename) as f:
             raw_lines = f.readlines()
         raw_lines = [x.strip() for x in raw_lines]
         
-        with open(csv_file,'rt') as csvfile:                
+        with open(filename,'rt') as csvfile:                
             dialect = csv.Sniffer().sniff(csvfile.readline())
             csvfile.seek(0)
             reader = csv.reader(csvfile,dialect)
             for row in reader:
                 file_array.append(row)
         
+        return {"raw_lines": raw_lines, "file_array": file_array}
+    
+    def test_parse_dwc_file(self):
+                
+        csv_file = "./georef/test_files/wkt_point.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
         toponims_exist = []
         toponims_to_create = []
-        fila = file_array[1]
-        linia = raw_lines[1]        
         
-        process_line_dwc(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
         self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( "\n".join(errors) ))
+        self.assertTrue( len(toponims_to_create) == 1, "A new site should be available to create, there are: {0}".format( len(toponims_to_create) ))
+        date_toponim = toponims_to_create[0]['versio'].datacaptura
+        parsed_date = parser.parse(raw_lines[1].split(';')[ FIELD_MAP_DWC["georeferencedDate"]["index"] ])
+        self.assertTrue(  
+             date_toponim == parsed_date,
+            "Toponim versio date {0} should be the same as parsed date from file {1}, is not".format(date_toponim, parsed_date)
+        )
+        
+
+    def test_parse_optional_date(self):
+        csv_file = "./georef/test_files/wkt_point_no_date.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        date_toponim = toponims_to_create[0]['versio'].datacaptura
+        date_today = date.today()
+        self.assertTrue(  
+             date_toponim == date_today,
+            "Toponim versio date {0} should be today date {1} because it's blank in file, is not".format(date_toponim, date_today)
+        )
+
+    def test_uncertainty_ignored(self):
+        csv_file = "./georef/test_files/wkt_polygon_w_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue(  
+             uncertainty_toponim != parsed_uncertainty,
+            "Since geometry it's a polygon, calculated uncertainty {0} should override uncertainty in file {1}, does not".format(uncertainty_toponim, parsed_uncertainty)
+        )
+
+    def test_uncertainty_can_be_blank_if_polygon(self):
+        csv_file = "./georef/test_files/wkt_polygon_wo_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
+        self.assertTrue(  
+             uncertainty_toponim != parsed_uncertainty,
+            "Since geometry it's a polygon, calculated uncertainty {0} should override uncertainty in file {1}, does not".format(uncertainty_toponim, parsed_uncertainty)
+        )
+
+    def test_uncertainty_should_not_be_blank_if_point(self):
+        csv_file = "./georef/test_files/wkt_point_wo_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
+        self.assertTrue( len(errors) > 0,
+            "If geometry is present and a point, uncertainty should have a valid value"
+        )

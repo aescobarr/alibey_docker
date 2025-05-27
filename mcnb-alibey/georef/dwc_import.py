@@ -4,24 +4,26 @@ from georef.import_utils import NumberOfColumnsException, EmptyFileException, to
 from georef.models import Toponim, Toponimversio, Tipustoponim, Recursgeoref
 from georef_addenda.models import GeometriaToponimVersio
 from dateutil import parser
+from datetime import date
 from django.contrib.gis.geos import GEOSGeometry
+from django.db.models import Q
 from georef.sec_calculation import compute_sec
 import re
 
 FIELD_MAP_DWC = {
-    "locality": { "index": 0 },
-    "higherGeography": { "index": 1 },
-    "georeferenceSources": { "index": 2 },
-    "verbatimLongitude": { "index": 3 }, 
-    "verbatimLatitude": { "index": 4 },
-    "georeferencedDate": { "index": 5 },
-    "georeferencedBy": { "index": 6 },
-    "maximumDepthInMeters": { "index": 7 },
-    "minimumDepthInMeters": { "index": 8 },
-    "georeferenceRemarks": { "index": 9 },
-    "coordinateUncertaintyInMeters": { "index": 10},
-    "footprintWKT": { "index": 11},
-    "footprintSRS": { "index": 12 }
+    "locality": { "index": 0, "mandatory": True },
+    "higherGeography": { "index": 1, "mandatory": True },
+    "georeferenceSources": { "index": 2, "mandatory": True },
+    "verbatimLongitude": { "index": 3, "mandatory": True }, 
+    "verbatimLatitude": { "index": 4, "mandatory": True },
+    "georeferencedDate": { "index": 5, "mandatory": False },
+    "georeferencedBy": { "index": 6, "mandatory": False },
+    "maximumDepthInMeters": { "index": 7, "mandatory": False },
+    "minimumDepthInMeters": { "index": 8, "mandatory": False },
+    "georeferenceRemarks": { "index": 9, "mandatory": False },
+    "coordinateUncertaintyInMeters": { "index": 10, "mandatory": True},
+    "footprintWKT": { "index": 11, "mandatory": True},
+    "footprintSRS": { "index": 12, "mandatory": True }
 }
 
 def adjust_dwc_row_map(header):
@@ -171,7 +173,7 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         verbatim_latitude = line[FIELD_MAP_DWC['verbatimLatitude']['index']]
 
         if is_empty_field(line[FIELD_MAP_DWC['georeferencedDate']['index']]):
-            data = None
+            data = date.today()
         else:
             try:
                 #data = datetime.strptime(line[8].strip(), '%d/%m/%Y')
@@ -248,6 +250,11 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
                     errorsLiniaActual.append("Error creant geometria a partir de text, si us plau repassa que no hi hagi errors al WKT, columna {}".format( FIELD_MAP_DWC['footprintWKT']['index'] + 1 ))
                     register_error(line_counter, "Error creant geometria a partir de text, si us plau repassa que no hi hagi errors al WKT, columna {}".format( FIELD_MAP_DWC['footprintWKT']['index'] + 1 ), problemes)
                 
+        if geometria is not None and geometria.geom_type == 'Point':
+            if is_empty_field(line[FIELD_MAP_DWC['coordinateUncertaintyInMeters']['index']]):
+                errorsALinia = True
+                errorsLiniaActual.append("Incertesa de coordenades en blanc no permesa per geometria de tipus punt, columna {0}".format( FIELD_MAP_DWC['coordinateUncertaintyInMeters']['index'] + 1 ))
+                register_error(line_counter, "Incertesa de coordenades en blanc no permesa per geometria de tipus punt, columna {0}".format( FIELD_MAP_DWC['coordinateUncertaintyInMeters']['index'] + 1 ) , problemes)
 
         if errorsALinia:
             errorsLinia.insert(0, line_counter)

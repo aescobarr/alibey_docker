@@ -13,7 +13,8 @@
 </ul>
 <p>
     A continuació es mostra el llistat de columnes que ha de contenir el fitxer. L'ordre no és important, però sí que és important
-    el nom de la columna. El nom correcte de la columna és el que hi ha entre parèntesi. Les columnes obligatòries es mostren en vermell:    
+    el nom de la columna. El nom correcte de la columna és el que hi ha entre parèntesi. Les columnes obligatòries es mostren en <span style="color:red;">vermell</span>;
+    les columnes en <span style="color:orangered;">taronja</span> són semi-obligatòries depenent del topònim en concret (veure descripció del camp)
 </p>
 <p>
 <ul>
@@ -66,11 +67,11 @@
             <li>Coordenada y original del topònim, en les unitats originals (ja siguin metres o latitud/longitud)</li>
         </ul>
     </li>
-    <li>
+    <li style="color:orangered;">
         <b>Data (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedDate" target="_blank">georeferencedDate</a>)</b>
         <ul>
             <li>
-                Data de la georeferenciació, en format YYYY-MM-DD (p.ex 2009-03-05). Si no s'indica es posa la data en
+                Data de la georeferenciació. Admet un rang ample de formats, però es recomana usar DD/MM/YYYY (p.ex 03/05/2009). Si no s'indica es posa la data en
                 la qual es va fer la importació.
             </li>
         </ul>
@@ -79,8 +80,7 @@
         <b>Georeferenciador (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedBy" target="_blank">georeferencedBy</a>)</b>
         <ul>
             <li>
-                Nom del georeferenciador, en la forma [nom, cognom]. Si no s'indica, s'assignarà la persona que està
-                fent la importació.
+                Nom del georeferenciador, en la forma [nom, cognom].
             </li>
         </ul>
     </li>
@@ -100,6 +100,13 @@
         <b>Observacions (<a href="https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks" target="_blank">georeferenceRemarks</a>)</b>
         <ul>
             <li>Observacions del procés de georeferenciació. No obligatori.</li>
+        </ul>
+    </li>
+    <li style="color: orangered;">
+        <b>Incertesa de coordenades(m) (<a href="https://dwc.tdwg.org/terms/#dwc:coordinateUncertaintyInMeters" target="_blank">coordinateUncertaintyInMeters</a>)</b>
+        <ul>
+            Incertesa de coordenades en metres al voltant de la coordenada original. Aquest camp només és obligatori si la geometria és un punt. En cas contrari,
+            es calcula a partir del radi d'incertesa de la geometria del topònim.
         </ul>
     </li>
     <li style="color:red;">
