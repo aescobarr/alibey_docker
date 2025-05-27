@@ -202,4 +202,8 @@ $(document).ready(function() {
     $('#fileInput').on('change',function(e){
         uploadFile();        
     });
+
+    $('#more_info').click(function(){
+        $('#collapsed').slideToggle('slow');
+    });    
 });
