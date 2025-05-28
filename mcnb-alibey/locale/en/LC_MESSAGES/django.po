@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 10:41+0200\n"
+"POT-Creation-Date: 2025-05-28 08:38+0200\n"
 "PO-Revision-Date: 2019-11-18 09:42+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -25,12 +25,12 @@ msgstr "Catalan"
 msgid "English"
 msgstr "English"
 
-#: georef/models.py:48 georef/views.py:2958 georef/views.py:2959
+#: georef/models.py:48 georef/views.py:3112 georef/views.py:3113
 msgid "Tipus de topònim"
 msgstr "Site name type"
 
 #: georef/models.py:62 georef/templates/georef/toponims_list.html:194
-#: georef/views.py:2876
+#: georef/views.py:3030
 msgid "País"
 msgstr "Country"
 
@@ -64,105 +64,105 @@ msgstr "Aquatic"
 msgid "Terrestre"
 msgstr "Terrestrial"
 
-#: georef/models.py:238 georef/templates/georef/base.html:84
+#: georef/models.py:253 georef/templates/georef/base.html:84
 msgid "Tipus unitats"
 msgstr "Unit type"
 
-#: georef/models.py:255
+#: georef/models.py:270
 msgid "Tipus de recurs"
 msgstr "Resource type"
 
-#: georef/models.py:269 georef/templates/georef/_recursos_fields.html:148
-#: georef/templates/georef/base.html:82 georef/views.py:2941
-#: georef/views.py:2942
+#: georef/models.py:284 georef/templates/georef/_recursos_fields.html:148
+#: georef/templates/georef/base.html:82 georef/views.py:3095
+#: georef/views.py:3096
 msgid "Tipus de suport"
 msgstr "Support type"
 
-#: georef/models.py:279 georef/templates/georef/_recursos_fields.html:103
+#: georef/models.py:294 georef/templates/georef/_recursos_fields.html:103
 #: georef/templates/georef/_recursos_fields.html:108
 msgid "Sistema de referència"
 msgstr "Coordinate reference system"
 
-#: georef/models.py:294 georef/templates/georef/base.html:69
+#: georef/models.py:309 georef/templates/georef/base.html:69
 #: georef/templates/georef/capes_wms.html:45
 #: georef/templates/georef/prefsvisualitzaciowms.html:23
 msgid "Preferències visualització capes WMS"
 msgstr "Activate/Deactivate WMS layers"
 
-#: georef/models.py:340
+#: georef/models.py:355
 msgid "Versió de topònim"
 msgstr "Site name version"
 
-#: georef/models.py:470 georef/templates/georef/recursos_list.html:174
-#: georef/views.py:2907 georef/views.py:2908
+#: georef/models.py:485 georef/templates/georef/recursos_list.html:174
+#: georef/views.py:3061 georef/views.py:3062
 msgid "Paraula clau"
 msgstr "Keyword"
 
-#: georef/models.py:484
+#: georef/models.py:499
 msgid "Paraules clau del recurs (relació)"
 msgstr "Resource key words (relationship)"
 
-#: georef/models.py:499
+#: georef/models.py:514
 msgid "Autors del recurs (relació)"
 msgstr "Resource authors (relationship)"
 
-#: georef/models.py:537
+#: georef/models.py:552
 msgid "Capa WMS"
 msgstr "WMS layer"
 
-#: georef/models.py:548
+#: georef/models.py:563
 msgid "Capes WMS del recurs (relació)"
 msgstr "Resource WMS layers (relationship)"
 
-#: georef/models.py:584
+#: georef/models.py:599
 msgid "Recurs de georeferenciació"
 msgstr "Georeferencing resource"
 
-#: georef/models.py:651
+#: georef/models.py:666
 msgid "cond_filtre_nom"
 msgstr "name"
 
-#: georef/models.py:652
+#: georef/models.py:667
 msgid "cond_filtre_acronim"
 msgstr "acronym"
 
-#: georef/models.py:653
+#: georef/models.py:668
 msgid "cond_filtre_paraulaclau"
 msgstr "keyword"
 
-#: georef/models.py:654
+#: georef/models.py:669
 msgid "cond_filtre_nomautor"
 msgstr "authorname"
 
-#: georef/models.py:655
+#: georef/models.py:670
 msgid "cond_filtre_tipus"
 msgstr "type"
 
-#: georef/models.py:656
+#: georef/models.py:671
 msgid "cond_filtre_pais"
 msgstr "country"
 
-#: georef/models.py:657
+#: georef/models.py:672
 msgid "cond_filtre_aquatic"
 msgstr "aquatic"
 
-#: georef/models.py:658
+#: georef/models.py:673
 msgid "cond_filtre_versio"
 msgstr "version"
 
-#: georef/models.py:659
+#: georef/models.py:674
 msgid "cond_filtre_geografic"
 msgstr "geographic"
 
-#: georef/models.py:660
+#: georef/models.py:675
 msgid "cond_filtre_geografic_geo"
 msgstr "geographic_geo"
 
-#: georef/models.py:688
+#: georef/models.py:703
 msgid "Poligon"
 msgstr "Polygon"
 
-#: georef/models.py:703
+#: georef/models.py:718
 msgid "Filtre"
 msgstr "Filter"
 
@@ -203,8 +203,8 @@ msgstr "Basic data"
 #: georef/templates/georef/toponim_update_2.html:117
 #: georef/templates/georef/toponims_list.html:191
 #: georef/templates/georef/user_base.html:50
-#: georef/templates/georef/user_new.html:48 georef/views.py:1599
-#: georef/views.py:2891
+#: georef/templates/georef/user_new.html:48 georef/views.py:1603
+#: georef/views.py:3045
 msgid "Nom"
 msgstr "Name"
 
@@ -214,8 +214,8 @@ msgid "Acrònim"
 msgstr "Acronym"
 
 #: georef/templates/georef/_recursos_fields.html:39
-#: georef/templates/georef/base.html:81 georef/views.py:2924
-#: georef/views.py:2925
+#: georef/templates/georef/base.html:81 georef/views.py:3078
+#: georef/views.py:3079
 msgid "Tipus de contingut"
 msgstr "Content type"
 
@@ -381,7 +381,7 @@ msgstr "Administrative division"
 #: georef/templates/georef/toponim_search.html:18
 #: georef/templates/georef/toponim_update_2.html:97
 #: georef/templates/georef/toponimfilters_list.html:19
-#: georef/templates/georef/toponims_dwc_import.html:22
+#: georef/templates/georef/toponims_dwc_import.html:26
 #: georef/templates/georef/toponims_import.html:22
 #: georef/templates/georef/toponims_list.html:101
 #: georef/templates/georef/toponimstree.html:22
@@ -522,7 +522,7 @@ msgstr ""
 #: georef/templates/georef/toponim_update_2.html:98
 #: georef/templates/georef/toponims_list.html:102
 #: georef/templates/georef/toponims_list.html:122
-#: georef/templates/georef/toponimstree.html:23 georef/views.py:860
+#: georef/templates/georef/toponimstree.html:23 georef/views.py:862
 msgid "Topònims"
 msgstr "Site names"
 
@@ -600,7 +600,7 @@ msgstr "Site name type"
 #: georef/templates/georef/calculcentroides.html:44
 #: georef/templates/georef/menu_edit.html:20
 #: georef/templates/georef/toponim_search.html:19
-#: georef/templates/georef/toponims_dwc_import.html:23
+#: georef/templates/georef/toponims_dwc_import.html:27
 #: georef/templates/georef/toponims_import.html:23
 msgid "Utilitats"
 msgstr "Tools"
@@ -917,7 +917,7 @@ msgstr "User data"
 
 #: georef/templates/georef/profile.html:38
 #: georef/templates/georef/user_base.html:88
-#: georef/templates/georef/user_new.html:86 georef/views.py:2825
+#: georef/templates/georef/user_new.html:86 georef/views.py:2979
 #: georef_addenda/models.py:56
 msgid "Organització"
 msgstr "Organization"
@@ -1073,7 +1073,7 @@ msgstr "Click here to access the Cartographic Resource creation form"
 #: georef/templates/georef/recursos_list.html:175
 #: georef/templates/georef/toponim_create.html:65
 #: georef/templates/georef/toponim_update_2.html:122
-#: georef/templates/georef/toponims_list.html:193 georef/views.py:1599
+#: georef/templates/georef/toponims_list.html:193 georef/views.py:1603
 msgid "Tipus"
 msgstr "Type"
 
@@ -1223,7 +1223,7 @@ msgid "Data"
 msgstr "Date"
 
 #: georef/templates/georef/toponim_update_2.html:169
-#: georef/templates/georef/toponims_list.html:192 georef/views.py:2842
+#: georef/templates/georef/toponims_list.html:192 georef/views.py:2996
 #: georef_addenda/models.py:104
 msgid "Autor"
 msgstr "Author"
@@ -1291,7 +1291,7 @@ msgid "Número versió"
 msgstr "Number"
 
 #: georef/templates/georef/toponim_update_2.html:259
-#: georef/templates/georef/toponim_update_2.html:295 georef/views.py:2859
+#: georef/templates/georef/toponim_update_2.html:295 georef/views.py:3013
 msgid "Qualificador versió"
 msgstr "Qualifier"
 
@@ -1429,127 +1429,25 @@ msgstr "Save version"
 msgid "Desat amb èxit!"
 msgstr "Save successful!"
 
-#: georef/templates/georef/toponims_dwc_import.html:24
+#: georef/templates/georef/toponims_dwc_import.html:28
 msgid "Importació de topònims format Darwin Core"
 msgstr "Site names Darwin Core import"
 
-#: georef/templates/georef/toponims_dwc_import.html:29
+#: georef/templates/georef/toponims_dwc_import.html:33
 msgid "Utilitat d'importació de topònims format Darwin Core"
 msgstr "Site names Darwin Core utility import"
 
-#: georef/templates/georef/toponims_dwc_import.html:34
+#: georef/templates/georef/toponims_dwc_import.html:38
 msgid ""
 "Aquesta eina permet importar topònims en format Darwin Core des d'un fitxer "
 "csv."
-msgstr "This tool allows the user to import site names in Darwin Core format from a csv file."
-
-#: georef/templates/georef/toponims_dwc_import.html:36
-msgid "dwc_import_help"
 msgstr ""
-"<p>The Darwin Core import can be done from the following formats::</p>"
-"<ul>"
-"<li>"
-"<p>EXCEL: Microsoft Excel File</p>"
-"</li>"
-"<li>"
-"<p>"
-"CSV: The file must be a valid csv file, using \";\" as column separator. The file is considered to have a first row with column names, which will be skipped in the import process. To avoid issues with special characters, the file should have UTF-8 encoding."
-"</p>"
-"</li>"
-"</ul>"
-"<p>"
-"The file columns must be the following, in the same order. Mandatory columns are indicated in red:</p>"
-"<p>"
-"<ul>"
-"<li style=\"color:red;\">"
-"Site name (<a href=\"https://dwc.tdwg.org/terms/#dwc:locality\">https://dwc.tdwg.org/terms/#dwc:locality</a>)."
-"<ul>"
-"<li>"
-"The site name must follow the structure: [name] - [country] ([site_type]) (Aquàtic|Terrestre).	"
-"</li>"
-"<li>"
-"The [name] can be any string, for instance \"Calonge de Segarra\". It can't be blank."
-"</li>"
-"<li>"
-"The [country] is optional. This name can contain the name of any country, which must be present in the Country dictionary. Alternatively, it can be left blank."
-"</li>"
-"<li>"
-"The [site_type] is mandatory. Admits any value from the site type dictionary."
-"</li>"
-"<li>"
-"Finally, indicate whether the Site is aquatic (Aquàtic) or terrestrial (Terrestre)."
-"</li>"
-"</ul>"
-"</li>"
-"<li style=\"color:red;\">"
-"Higher geographies (<a href=\"https://dwc.tdwg.org/terms/#dwc:higherGeography\">https://dwc.tdwg.org/terms/#dwc:higherGeography</a>)"
-"<ul>"
-"<li>This field is a string representing the site genealogy. It's a list of site names, separed by the character '|'. The rightmost site on the list is the container of the current site. </li>"
-"<li>For instance, if we are importing the site \"Calonge de Segarra\", the string would be \"Europa | Espanya | Catalunya | Barcelona | Anoia\", indicating that \"Calonge de Segarra\" is in l'Anoia."
-"</ul>"
-"</li>"
-"<li style=\"color:red;\">"
-"Version captured from resource (<a href=\"https://dwc.tdwg.org/terms/#dwc:georeferenceSources\">https://dwc.tdwg.org/terms/#dwc:georeferenceSources</a>)"
-"<ul>"
-"<li>Name of the used georeference source. It must be on the Resources list.</li>"
-"</ul>"
-"</li>"
-"<li>"
-"Date (<a href=\"https://dwc.tdwg.org/terms/#dwc:georeferencedDate\">https://dwc.tdwg.org/terms/#dwc:georeferencedDate</a>)"
-"<ul>"
-"<li>"
-"Date of georeferencing, in format YYYY-MM-DD (i.e 2009-03-05). IF left blank, it defaults to the date in which the import was performed."
-"</li>"
-"</ul>"
-"</li>"
-"<li style=\"color:red;\">"
-"Georeferencer (<a href=\"https://dwc.tdwg.org/terms/#dwc:georeferencedBy\">https://dwc.tdwg.org/terms/#dwc:georeferencedBy</a>)"
-"<ul>"
-"<li>"
-"Georeferencer's name, in form [last name, first name]. If left blank, defaults to the person performing the import."
-"</li>"
-"</ul>"
-"</li>"
-"<li>"
-"Max depth height(m) (<a href=\"https://dwc.tdwg.org/terms/#dwc:maximumDepthInMeters\">https://dwc.tdwg.org/terms/#dwc:maximumDepthInMeters</a>)"
-"<ul>"
-"<li>Maximum depth, in meters. Decimals allowed. This field is optional.</li>"
-"</ul>"
-"</li>"
-"<li>"
-"Minimum depth height(m) (<a href=\"https://dwc.tdwg.org/terms/#dwc:minimumDepthInMeters\">https://dwc.tdwg.org/terms/#dwc:minimumDepthInMeters</a>)"
-"<ul>"
-"<li>Minimum depth, in meters. Es Decimals allowed. This field is optional.</li>"
-"</ul>"
-"</li>"
-"<li>"
-"Observations (<a href=\"https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks\">https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks</a>)"
-"<ul>"
-"<li>Comments field. Not mandatory.</li>"
-"</ul>"
-"</li>"
-"<li style=\"color:red;\">"
-"Site geometry (<a href=\"https://dwc.tdwg.org/terms/#dwc:footprintWKT\">https://dwc.tdwg.org/terms/#dwc:footprintWKT</a>)"
-"<ul>"
-"Geometry of the site, in WKT (well known text) format. This geometry will be used to compute the site centroid and the coordinate imprecision."
-"</ul>"
-"</li>"
-"<li style=\"color:red;\">"
-"Geometry reference system (<a href=\"https://dwc.tdwg.org/terms/#dwc:footprintSRS\">https://dwc.tdwg.org/terms/#dwc:footprintSRS</a>)"
-"<ul>"
-"<li>EPSG identifier for the reference system in which the site geometry is projected (for instance, \"epsg:4326\")</li>"
-"</ul>"
-"</li>"
-"</ul>"
-"</p>"
-"<p>"
-"When uploading the file, all rows are checked for errors. If "
-"errors are found, a window with the error list will pop up, showing "
-"the problematic column and rows. The user must then solve all "
-"these issues before reuploading the data. Once uploaded, "
-"the system will show a finishing report with a list of the new records. "
-"This report can be downloaded in csv format."
-"</p>"
+"This tool allows the user to import site names in Darwin Core format from a "
+"csv file."
+
+#: georef/templates/georef/toponims_dwc_import.html:40
+msgid "Clica per més informació..."
+msgstr "Click for more info..."
 
 #: georef/templates/georef/toponims_import.html:29
 msgid "Utilitat d'importació de topònims des de CSV"
@@ -1602,10 +1500,8 @@ msgid "Exportar a kml"
 msgstr "Export to kml"
 
 #: georef/templates/georef/toponims_list.html:131
-#, fuzzy
-#| msgid "Exportar a xls"
 msgid "Exportar a Darwin Core"
-msgstr "Export to xls"
+msgstr "Export to Darwin Core"
 
 #: georef/templates/georef/toponims_list.html:134
 msgid "Tots"
@@ -1669,87 +1565,91 @@ msgstr "Password"
 msgid "Password(repetir)"
 msgstr "Password(repeat)"
 
-#: georef/views.py:1150
+#: georef/views.py:1152
 msgid "Tots els topònims"
 msgstr "All site names"
 
-#: georef/views.py:1252 georef/views.py:2095
+#: georef/views.py:1254 georef/views.py:2099
 msgid "Recurs desat amb èxit!"
 msgstr "Resource successfully saved!"
 
-#: georef/views.py:1599
+#: georef/views.py:1603
 msgid "Aquàtic?"
 msgstr "On water?"
 
-#: georef/views.py:1599
+#: georef/views.py:1603
 msgid "Coordenada x centroide"
 msgstr "X coordinate of centroid"
 
-#: georef/views.py:1599
+#: georef/views.py:1603
 msgid "Coordenada y centroide"
 msgstr "Y coordinate of centroid"
 
-#: georef/views.py:1599
+#: georef/views.py:1603
 msgid "Precisio (m)"
 msgstr "Precision (m)"
 
-#: georef/views.py:1599
+#: georef/views.py:1603
 msgid "Incertesa calculadora georeferenciació"
 msgstr "Georeferencing calculator uncertainty (m)"
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "nom_toponim"
 msgstr ""
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "aquatic?"
 msgstr ""
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "tipus_toponim"
 msgstr "site_type"
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "centroide_x"
 msgstr "centroid_x"
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "centroide_y"
 msgstr "centroid_y"
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "incertesa_m"
 msgstr "uncertainty_m"
 
-#: georef/views.py:1889
+#: georef/views.py:1893
 msgid "incertesa_calc_georef"
 msgstr "georeferencing_calculator_uncertainty_m"
 
-#: georef/views.py:2132
+#: georef/views.py:2136
 msgid "Cal posar un títol i un enllaç"
 msgstr "Title and link are mandatory"
 
-#: georef/views.py:2824
+#: georef/views.py:2452
+msgid "El fitxer és buit"
+msgstr ""
+
+#: georef/views.py:2978
 msgid "Nom organització"
 msgstr "Organization name"
 
-#: georef/views.py:2841
+#: georef/views.py:2995
 msgid "Nom autor"
 msgstr "Author name"
 
-#: georef/views.py:2858
+#: georef/views.py:3012
 msgid "Nom qualificador"
 msgstr "Qualifier name"
 
-#: georef/views.py:2875
+#: georef/views.py:3029
 msgid "Nom país"
 msgstr "Country name"
 
-#: georef/views.py:2892 georef_addenda/models.py:173
+#: georef/views.py:3046 georef_addenda/models.py:173
 msgid "Protocol de georeferenciació"
 msgstr "Georeferencing protocol"
 
-#: georef/views.py:3061 georef/views.py:3062
+#: georef/views.py:3215 georef/views.py:3216
 msgid "Tipus d'unitats"
 msgstr "Unit type"
 
@@ -1776,6 +1676,71 @@ msgstr ""
 #: georef_addenda/models.py:168
 msgid "Protocol de georeferenciació del Museu de Zoologia de Barcelona"
 msgstr "Georeferencing protocol of the Museu de Zoolgia de Barcelona"
+
+#~ msgid "dwc_import_help"
+#~ msgstr ""
+#~ "<p>The Darwin Core import can be done from the following formats::</"
+#~ "p><ul><li><p>EXCEL: Microsoft Excel File</p></li><li><p>CSV: The file "
+#~ "must be a valid csv file, using \";\" as column separator. The file is "
+#~ "considered to have a first row with column names, which will be skipped "
+#~ "in the import process. To avoid issues with special characters, the file "
+#~ "should have UTF-8 encoding.</p></li></ul><p>The file columns must be the "
+#~ "following, in the same order. Mandatory columns are indicated in red:</"
+#~ "p><p><ul><li style=\"color:red;\">Site name (<a href=\"https://dwc.tdwg."
+#~ "org/terms/#dwc:locality\">https://dwc.tdwg.org/terms/#dwc:locality</a>)."
+#~ "<ul><li>The site name must follow the structure: [name] - [country] "
+#~ "([site_type]) (Aquàtic|Terrestre).\t</li><li>The [name] can be any "
+#~ "string, for instance \"Calonge de Segarra\". It can't be blank.</"
+#~ "li><li>The [country] is optional. This name can contain the name of any "
+#~ "country, which must be present in the Country dictionary. Alternatively, "
+#~ "it can be left blank.</li><li>The [site_type] is mandatory. Admits any "
+#~ "value from the site type dictionary.</li><li>Finally, indicate whether "
+#~ "the Site is aquatic (Aquàtic) or terrestrial (Terrestre).</li></ul></"
+#~ "li><li style=\"color:red;\">Higher geographies (<a href=\"https://dwc."
+#~ "tdwg.org/terms/#dwc:higherGeography\">https://dwc.tdwg.org/terms/#dwc:"
+#~ "higherGeography</a>)<ul><li>This field is a string representing the site "
+#~ "genealogy. It's a list of site names, separed by the character '|'. The "
+#~ "rightmost site on the list is the container of the current site. </"
+#~ "li><li>For instance, if we are importing the site \"Calonge de Segarra\", "
+#~ "the string would be \"Europa | Espanya | Catalunya | Barcelona | Anoia\", "
+#~ "indicating that \"Calonge de Segarra\" is in l'Anoia.</ul></li><li "
+#~ "style=\"color:red;\">Version captured from resource (<a href=\"https://"
+#~ "dwc.tdwg.org/terms/#dwc:georeferenceSources\">https://dwc.tdwg.org/terms/"
+#~ "#dwc:georeferenceSources</a>)<ul><li>Name of the used georeference "
+#~ "source. It must be on the Resources list.</li></ul></li><li>Date (<a "
+#~ "href=\"https://dwc.tdwg.org/terms/#dwc:georeferencedDate\">https://dwc."
+#~ "tdwg.org/terms/#dwc:georeferencedDate</a>)<ul><li>Date of georeferencing, "
+#~ "in format YYYY-MM-DD (i.e 2009-03-05). IF left blank, it defaults to the "
+#~ "date in which the import was performed.</li></ul></li><li style=\"color:"
+#~ "red;\">Georeferencer (<a href=\"https://dwc.tdwg.org/terms/#dwc:"
+#~ "georeferencedBy\">https://dwc.tdwg.org/terms/#dwc:georeferencedBy</"
+#~ "a>)<ul><li>Georeferencer's name, in form [last name, first name]. If left "
+#~ "blank, defaults to the person performing the import.</li></ul></"
+#~ "li><li>Max depth height(m) (<a href=\"https://dwc.tdwg.org/terms/#dwc:"
+#~ "maximumDepthInMeters\">https://dwc.tdwg.org/terms/#dwc:"
+#~ "maximumDepthInMeters</a>)<ul><li>Maximum depth, in meters. Decimals "
+#~ "allowed. This field is optional.</li></ul></li><li>Minimum depth "
+#~ "height(m) (<a href=\"https://dwc.tdwg.org/terms/#dwc:"
+#~ "minimumDepthInMeters\">https://dwc.tdwg.org/terms/#dwc:"
+#~ "minimumDepthInMeters</a>)<ul><li>Minimum depth, in meters. Es Decimals "
+#~ "allowed. This field is optional.</li></ul></li><li>Observations (<a "
+#~ "href=\"https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks\">https://dwc."
+#~ "tdwg.org/terms/#dwc:georeferenceRemarks</a>)<ul><li>Comments field. Not "
+#~ "mandatory.</li></ul></li><li style=\"color:red;\">Site geometry (<a "
+#~ "href=\"https://dwc.tdwg.org/terms/#dwc:footprintWKT\">https://dwc.tdwg."
+#~ "org/terms/#dwc:footprintWKT</a>)<ul>Geometry of the site, in WKT (well "
+#~ "known text) format. This geometry will be used to compute the site "
+#~ "centroid and the coordinate imprecision.</ul></li><li style=\"color:red;"
+#~ "\">Geometry reference system (<a href=\"https://dwc.tdwg.org/terms/#dwc:"
+#~ "footprintSRS\">https://dwc.tdwg.org/terms/#dwc:footprintSRS</"
+#~ "a>)<ul><li>EPSG identifier for the reference system in which the site "
+#~ "geometry is projected (for instance, \"epsg:4326\")</li></ul></li></ul></"
+#~ "p><p>When uploading the file, all rows are checked for errors. If errors "
+#~ "are found, a window with the error list will pop up, showing the "
+#~ "problematic column and rows. The user must then solve all these issues "
+#~ "before reuploading the data. Once uploaded, the system will show a "
+#~ "finishing report with a list of the new records. This report can be "
+#~ "downloaded in csv format.</p>"
 
 #~ msgid "Anar a google"
 #~ msgstr "Go to google"
