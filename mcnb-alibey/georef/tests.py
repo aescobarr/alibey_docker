@@ -326,7 +326,7 @@ class ImportDWCTests(TestCase):
         toponims_to_create = []
         
         process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
-        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( "\n".join(errors) ))
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
         self.assertTrue( len(toponims_to_create) == 1, "A new site should be available to create, there are: {0}".format( len(toponims_to_create) ))
         date_toponim = toponims_to_create[0]['versio'].datacaptura
         parsed_date = parser.parse(raw_lines[1].split(';')[ FIELD_MAP_DWC["georeferencedDate"]["index"] ])
@@ -350,11 +350,11 @@ class ImportDWCTests(TestCase):
         toponims_to_create = []
         
         process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
-        date_toponim = toponims_to_create[0]['versio'].datacaptura
-        date_today = date.today()
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
+        date_toponim = toponims_to_create[0]['versio'].datacaptura        
         self.assertTrue(  
-             date_toponim == date_today,
-            "Toponim versio date {0} should be today date {1} because it's blank in file, is not".format(date_toponim, date_today)
+             date_toponim is None,
+            "Toponim versio date {0} should be blank because it's blank in file, is not".format(date_toponim)
         )
 
     def test_uncertainty_ignored(self):
@@ -371,6 +371,7 @@ class ImportDWCTests(TestCase):
         toponims_to_create = []
         
         process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
         uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
         parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
         self.assertTrue(  
@@ -392,6 +393,7 @@ class ImportDWCTests(TestCase):
         toponims_to_create = []
         
         process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
         uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
         parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
         self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
@@ -413,7 +415,7 @@ class ImportDWCTests(TestCase):
         toponims_exist = []
         toponims_to_create = []
         
-        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
         parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
         self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
         self.assertTrue( len(errors) > 0,

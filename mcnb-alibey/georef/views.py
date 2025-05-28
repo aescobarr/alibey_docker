@@ -1567,7 +1567,9 @@ def toponims_dwc_import(request):
 
 @login_required
 def toponims_import(request):
-    context = {}
+    locale = request.LANGUAGE_CODE
+    help_template = 'georef/import_help/import_csv_{0}.html'.format( locale )
+    context = {'help_template': help_template}
     return render(request, 'georef/toponims_import.html', context)
 
 @login_required

@@ -33,8 +33,11 @@
                 <div class="col-md-12">
                     <p>{% trans "Aquesta eina permet importar topònims des d'un fitxer csv." %}</p>
                     <!--<button data-toggle="tooltip" title="{% trans 'Detalls' %}" id="details" type="button" class="btn btn-primary">{% trans "Explica'm més..." %}</button>-->
-                    <div class="persiana">
-                        {% trans 'toponym_import_help' %}
+                    <div class="persiana">                        
+                        <div class="badge" id="more_info">{% trans "Clica per més informació..." %}</div>
+                        <div id="collapsed" class="alert alert-info" style="display: none;">
+                        {% include help_template %}
+                        </div>
                     </div>
                 </div>
             </div>

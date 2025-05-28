@@ -171,12 +171,11 @@ def process_line_dwc(line, line_string, errors, toponims_exist, toponims_to_crea
         
         verbatim_longitude = line[FIELD_MAP_DWC['verbatimLongitude']['index']]
         verbatim_latitude = line[FIELD_MAP_DWC['verbatimLatitude']['index']]
-
-        if is_empty_field(line[FIELD_MAP_DWC['georeferencedDate']['index']]):
-            data = date.today()
+        
+        if line[FIELD_MAP_DWC['georeferencedDate']['index']] is None or line[FIELD_MAP_DWC['georeferencedDate']['index']].strip().lower() == '':
+            data = None
         else:
-            try:
-                #data = datetime.strptime(line[8].strip(), '%d/%m/%Y')
+            try:                
                 data = parser.parse(line[FIELD_MAP_DWC['georeferencedDate']['index']].strip())
             except ValueError:
                 errorsALinia = True

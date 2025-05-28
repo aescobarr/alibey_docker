@@ -1,0 +1,151 @@
+<p>The accepted formats are:</p>
+<ul>
+    <li>
+        <p>EXCEL: Microsoft Excel file</p>
+    </li>
+    <li>
+        <p>
+            CSV: The file must be a valid CSV, using the ';' symbol as the column separator. It is assumed that the
+            file contains a header row with column names, so the first line of the file is never processed.
+            To avoid issues with special characters, the file should be encoded in UTF-8.
+        </p>
+    </li>
+</ul>
+<p>
+    Below is a list of the columns that the file must contain. Mandatory columns are shown in <span style="color:red;">red</span>.
+</p>
+<p>
+<ul>
+    <li style="color:red;">
+        <b>Name</b>
+        <ul>
+            <li>
+                String with the name of the site name.
+            </li>            
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Type</b>
+        <ul>
+            <li>
+                Type of site name. A value present in the lookup table of site name types must be indicated.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Aquatic</b>
+        <ul>
+            <li>Indicates whether the site name is aquatic or terrestrial. It is considered aquatic if this field contains any of the values ['true' | 'cert' | 'sí' | 'si' | '1' | 'cierto' | 'verdadero'], and terrestrial otherwise.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Parent node</b>
+        <ul>
+            <li>Full name of the site name in which the current site name is contained. The site name name must be in the format: [name] - [country] ([site name_type]) (Aquatic|Terrestrial).</li>
+            <li>
+                [name] can be any text string, for example "Calonge de Segarra". It cannot be left blank.
+            </li>
+            <li>
+                [country] is optional. Any country name may be indicated here, as long as it is present in the Countries lookup table. Otherwise, leave it blank.
+            </li>
+            <li>
+                [site name_type] is mandatory. Any value from the site name types lookup table may be used here.
+            </li>
+            <li>
+                Finally, it must be indicated whether the site name is aquatic or terrestrial.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Version number</b>
+        <ul>
+            <li>
+                The version number of the current site name. It must be a valid integer.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Version qualifier</b>
+        <ul>
+            <li>
+                The version qualifier of the current site name. It can be any valid value from the Version Qualifiers lookup table.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Captured version of the resource</b>
+        <ul>
+            <li>
+                Name of the georeferencing resource used for geolocating the site name. It can be any name from the list of Resources.
+            </li>
+        </ul>
+    </li>
+    <li>
+        <b>site name name in the resource</b>
+        <ul>
+            <li>
+                Name of the site name in the georeferencing resource used. It may differ from the site name name in Alibey; this field is optional.
+            </li>
+        </ul>
+    </li>
+    <li>
+        <b>Date</b>
+        <ul>
+            <li>
+                Date of georeferencing. A wide range of formats is accepted, but it's recommended to use DD/MM/YYYY (e.g., 03/05/2009). This field is optional; leave it blank if unspecified.
+            </li>
+        </ul>
+    </li>    
+    <li style="color:red;">
+        <b>Original x coordinate</b>
+        <ul>
+            <li>Original x coordinate of the site name, in the original units (either meters or latitude/longitude)</li>
+        </ul>
+    </li>    
+    <li style="color:red;">
+        <b>Original y coordinate</b>
+        <ul>
+            <li>Original y coordinate of the site name, in the original units (either meters or latitude/longitude)</li>
+        </ul>
+    </li>    
+    <li>
+        <b>Maximum depth altitude (m)</b>
+        <ul>
+            <li>Maximum depth, in meters. Decimals are allowed. This field is not mandatory.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Minimum depth altitude (m)</b>
+        <ul>
+            <li>Minimum depth, in meters. Decimals are allowed. This field is not mandatory.</li>
+        </ul>
+    </li>
+    <li style="color: red;">
+        <b>Coordinate uncertainty (m)</b>
+        <ul>
+            <li>Coordinate uncertainty in meters around the original coordinate. This field is mandatory.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Georeferencer</b>
+        <ul>
+            <li>
+                Name of the georeferencer, in the form [first name last name].
+            </li>
+        </ul>
+    </li>    
+    <li>
+        <b>Observations</b>
+        <ul>
+            <li>Observations from the georeferencing process. Not mandatory.</li>
+        </ul>
+    </li>        
+</ul>
+</p>
+<p>
+    When uploading the file, all its rows will be reviewed to ensure there are no errors.
+    If there are any, a window will appear listing them along with the problematic line and column.
+    The user must resolve all these errors before loading the data.
+    Once loaded, an output report will be displayed with a list of the records that have been added.
+    The output report can be downloaded in CSV format.
+</p>

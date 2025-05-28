@@ -1,0 +1,154 @@
+<p>Els formats acceptats són:</p>
+<ul>
+    <li>
+        <p>EXCEL: Fitxer excel de Microsoft</p>
+    </li>
+    <li>
+        <p>
+            CSV: El fitxer ha de ser un csv vàlid, amb el símbol ';' com a separador de columnes. Es considera que el
+            fitxer té una primera fila amb els noms de columnes, de manera que la primera línia del fitxer no es
+            processa mai. Per evitar problemes amb caràcters especials,el fitxer hauria de tenir codificació UTF-8.
+        </p>
+    </li>
+</ul>
+<p>
+    A continuació es mostra el llistat de columnes que ha de contenir el fitxer. Les columnes obligatòries es mostren en <span style="color:red;">vermell</span>.
+</p>
+<p>
+<ul>
+    <li style="color:red;">
+        <b>Nom</b>
+        <ul>
+            <li>
+                Cadena amb el nom del topònim.
+            </li>            
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Tipus</b>
+        <ul>
+            <li>
+                Tipus de topònim. Cal indicar un valor present al tesaure de tipus de topònims.
+            <li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Aquàtic</b>
+        <ul>
+            <li>Indica si el topònim és aquàtic o terrestre. Es considera aquàtic si en aquest camp hi ha qualsevol dels valors ['true' | 'cert' | 'sí' | 'si' | '1' | 'cierto' | 'verdadero'], terrestre en qualsevol altre cas.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Node superior</b>
+        <ul>
+            <li>Nom complet del topònim en el qual està contingut el topònim actual. El nom del topònim ha de ser de la forma: [nom] - [país] ([tipus_topònim]) (Aquàtic|Terrestre).</li>
+            <li>
+                El [nom] pot ser qualsevol cadena de text, per exemple "Calonge de Segarra". No pot estar en blanc.
+            </li>
+            <li>
+                El [país] és opcional. En aquest camp es pot indicar el nom de qualsevol país, que ha d'estar present
+                al tesaure de Països. Si no, es deixa en blanc.
+            </li>
+            <li>
+                El [tipus_topònim] és obligatori. En aquest camp es pot indicar qualsevol valor del tesaure de tipus de
+                topònims.
+            </li>
+            <li>
+                Finalment, cal indicar si el topònim és aquàtic o terrestre.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Número de versió</b>
+        <ul>
+            <li>
+                El número de versió del topònim actual. Ha de ser un nombre enter vàlid.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Qualificador de la versió</b>
+        <ul>
+            <li>
+                El qualificador de versió del topònim actual. Pot tenir qualsevol valor vàlid del tesaure de Qualificadors de versió.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Versió capturada del recurs</b>
+        <ul>
+            <li>
+                Nom del recurs de georeferenciació usat en la geolocalització del topònim. Pot tenir com valor qualsevol nom del llistat de Recursos-
+            </li>
+        </ul>
+    </li>
+    <li>
+        <b>Nom del topònim al recurs</b>
+        <ul>
+            <li>
+                Nom del topònim en el recurs de georeferenciació usat. Pot ser diferent del nom del topònim a Alibey, camp opcional.
+            </li>
+        </ul>
+    </li>
+    <li>
+        <b>Data</b>
+        <ul>
+            <li>
+                Data de la georeferenciació. Admet un rang ample de formats, però es recomana usar DD/MM/YYYY (p.ex 03/05/2009). Aquest camp és opcional, es deixa en blanc si no s'especifica.
+            </li>
+        </ul>
+    </li>    
+    <li style="color:red;">
+        <b>Coordenada x original</b>
+        <ul>
+            <li>Coordenada x original del topònim, en les unitats originals (ja siguin metres o latitud/longitud)</li>
+        </ul>
+    </li>    
+    <li style="color:red;">
+        <b>Coordenada y original</b>
+        <ul>
+            <li>Coordenada y original del topònim, en les unitats originals (ja siguin metres o latitud/longitud)</li>
+        </ul>
+    </li>    
+    <li>
+        <b>Altitud profunditat màxima(m)</b>
+        <ul>
+            <li>Profunditat màxima, en número de metres. Es permeten decimals. Aquest camp no és obligatori.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Altitud profunditat mínima(m)</b>
+        <ul>
+            <li>Profunditat mínima, en número de metres. Es permeten decimals. Aquest camp no és obligatori.</li>
+        </ul>
+    </li>
+    <li style="color: red;">
+        <b>Incertesa de coordenades(m)</b>
+        <ul>
+            Incertesa de coordenades en metres al voltant de la coordenada original. Aquest camp només és obligatori.
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Georeferenciador</b>
+        <ul>
+            <li>
+                Nom del georeferenciador, en la forma [nom cognom].
+            </li>
+        </ul>
+    </li>    
+    <li>
+        <b>Observacions</b>
+        <ul>
+            <li>Observacions del procés de georeferenciació. No obligatori.</li>
+        </ul>
+    </li>        
+</ul>
+</p>
+<p>
+    En carregar el fitxer, es repassen totes les files del mateix per 
+    comprovar que no hi hagi errors. Si n'hi ha, es mostrarà una finestra amb un
+    llistat dels mateixos indicant la línia i columna problemàtiques. Caldrà que
+    l'usuari resolgui tots aquests errors abans de carregar les dades.Un cop
+    carregades, es mostrarà un informe de sortida amb un llistat dels registres
+    que s'han afegit. Es podrà descarregar l'informe de sortida en format csv.
+</p>
