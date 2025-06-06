@@ -145,12 +145,27 @@ class Toponim(models.Model):
         #return stack
         return format_denormalized_toponimtree(self.denormalized_toponimtree)
     
+    def get_denormalized_toponimtree_fullname(self):
+        try:
+            toponimtree = self.get_denormalized_toponimtree()            
+            return ' | '.join( [ Toponim.objects.get(pk=a.split('$')[0]).nom_str for a in toponimtree ] )
+        except:
+            pass
+
     def get_denormalized_toponimtree_str(self):
         try:
             toponimtree = self.get_denormalized_toponimtree()
             return ' | '.join( [ a.split('$')[1] for a in toponimtree ] )
         except:
             pass
+
+    def get_denormalized_toponimtree_full(self):
+        try:
+            toponimtree = self.get_denormalized_toponimtree()
+            return ' | '.join( [ a.split('$')[1] for a in toponimtree ] )
+        except:
+            pass
+
 
     def can_i_edit(self, toponim_permission):
         '''

@@ -66,7 +66,8 @@ import geoserver.util
 from shutil import rmtree
 from georef.jsonprefs import JsonPrefsUtil
 import pyproj
-from georef.csv_import import check_file_structure, NumberOfColumnsException, EmptyFileException, process_line
+from georef.csv_import import check_file_structure, process_line
+from georef.dwc_import import check_file_structure_dwc, process_line_dwc, adjust_dwc_row_map
 from django.db import connection
 
 from georef.permissions import HasAdministrativePermission
@@ -95,6 +96,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.contrib import messages
+from georef.import_utils import NumberOfColumnsException, EmptyFileException, MissingColumnException
 
 
 def get_order_clause(params_dict, translation_dict=None):
@@ -1554,9 +1556,20 @@ def recursos_list_xls(request):
     wb.save(response)
     return response
 
+
+@login_required
+def toponims_dwc_import(request):
+    locale = request.LANGUAGE_CODE
+    help_template = 'georef/import_help/import_dwc_{0}.html'.format( locale )
+    context = {'help_template': help_template}
+    return render(request, 'georef/toponims_dwc_import.html', context)
+
+
 @login_required
 def toponims_import(request):
-    context = {}
+    locale = request.LANGUAGE_CODE
+    help_template = 'georef/import_help/import_csv_{0}.html'.format( locale )
+    context = {'help_template': help_template}
     return render(request, 'georef/toponims_import.html', context)
 
 @login_required
@@ -1817,7 +1830,7 @@ def toponims_list_dwc(request):
             geom = versio.union_geometry()
             writer.writerow([
                 record['nom_str'], 
-                toponim.get_denormalized_toponimtree_str(), 
+                toponim.get_denormalized_toponimtree_fullname(), 
                 georef_sources, 
                 srs, 
                 versio.datacaptura, 
@@ -1835,7 +1848,7 @@ def toponims_list_dwc(request):
         else:
             writer.writerow([
                 record['nom_str'], 
-                toponim.get_denormalized_toponimtree_str(),
+                toponim.get_denormalized_toponimtree_fullname(),
                 '',
                 '',
                 '',
@@ -2428,16 +2441,18 @@ def determine_import_file_type(file_path):
 def cleanup_excel_line_item(x):
     pre_clean = str(x).strip()
     if pre_clean == 'nan':
-        return '';
+        return ''
     return pre_clean
 
 
-@api_view(['POST'])
-def import_toponims(request, file_name=None):
+def perform_import(request, file_name, check_file_structure_function, check_headers_function, process_line_function):
     if file_name is None or file_name.strip() == '':
         content = {'status': 'KO', 'detail': 'mandatory param missing'}
-        return Response(data=content, status=400)
+        return Response(data=content, status=400)    
     filepath = UPLOAD_DIR + '/' + file_name
+    if os.path.getsize(filepath) == 0:
+        content = {'status': 'KO', 'detail': _('El fitxer és buit')}
+        return Response(data=content, status=400)    
     filename = ntpath.basename(os.path.splitext(filepath)[0])
     #file_type = magic.from_file(filepath)
     file_type = determine_import_file_type(filepath)
@@ -2453,18 +2468,23 @@ def import_toponims(request, file_name=None):
             with open(filepath) as f:
                 raw_lines = f.readlines()
             raw_lines = [x.strip() for x in raw_lines]
-            with open(filepath,'rt') as csvfile:
-                #dialect = csv.Sniffer().sniff(csvfile.read(1024))
+            with open(filepath,'rt') as csvfile:                
                 dialect = csv.Sniffer().sniff(csvfile.readline())
                 csvfile.seek(0)
                 reader = csv.reader(csvfile,dialect)
                 for row in reader:
                     file_array.append(row)
                 try:
-                    check_file_structure(file_array)
-                except NumberOfColumnsException as n:
+                    #check_file_structure(file_array)
+                    check_file_structure_function(file_array)
+                    if check_headers_function is not None:
+                        check_headers_function(raw_lines[0])
+                except MissingColumnException as n:
                     details = n.args[0]
-                    msg = "Problema amb l'estructura del fitxer. S'esperaven 16 columnes i se n'han trobat " + details["numcols"] + " a la fila " + details["numrow"]
+                    errors.append(details)
+                except NumberOfColumnsException as n:
+                    details = n.args[0]                    
+                    msg = "Problema amb l'estructura del fitxer. S'esperaven {0} columnes i se n'han trobat {1} a la fila {2}".format(details["numcols_expected"], details["numcols"], details["numrow"]) 
                     errors.append(msg)
                 except EmptyFileException as e:
                     msg = "Sembla que el fitxer té menys de 2 línies"
@@ -2477,7 +2497,7 @@ def import_toponims(request, file_name=None):
                 if len(errors) == 0:
                     for fila, linia in zip(file_array[1:], raw_lines[1:]):
                         try:
-                            process_line(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
+                            process_line_function(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
                             contador_fila += 1
                         except:
                             e = sys.exc_info()[0]
@@ -2491,10 +2511,21 @@ def import_toponims(request, file_name=None):
             else:
                 for toponim_and_versio in toponims_to_create:
                     t = toponim_and_versio['toponim']
-                    v = toponim_and_versio['versio']
+                    v = toponim_and_versio['versio']                    
+
                     t.save()
                     v.idtoponim = t
                     v.save()
+
+                    geom = None
+                    try:
+                        geom = toponim_and_versio['geometria']
+                    except KeyError:
+                        pass
+                    if geom is not None:
+                        geom.idversio = v
+                        geom.save()
+
                 success_report = create_success_report(toponims_to_create, toponims_exist)
                 filelink = create_result_csv(toponims_to_create, toponims_exist, request)
                 content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
@@ -2530,7 +2561,7 @@ def import_toponims(request, file_name=None):
             problems = {}
             if len(errors) == 0:
                 for fila, linia in zip(file_array, raw_lines):
-                    process_line(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
+                    process_line_function(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
                     contador_fila += 1
 
             if len(errors) > 0:
@@ -2543,10 +2574,142 @@ def import_toponims(request, file_name=None):
                     t.save()
                     v.idtoponim = t
                     v.save()
+
+                    geom = None
+                    try:
+                        geom = toponim_and_versio['geometria']
+                    except KeyError:
+                        pass
+                    if geom is not None:
+                        geom.idversio = v
+                        geom.save()
                 success_report = create_success_report(toponims_to_create, toponims_exist)
                 filelink = create_result_csv(toponims_to_create, toponims_exist, request)
                 content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
-                return Response(data=content, status=200)
+                return Response(data=content, status=200)    
+
+@api_view(['POST'])
+def import_toponims_dwc(request, file_name=None):
+    retVal = perform_import(request, file_name, check_file_structure_dwc, adjust_dwc_row_map, process_line_dwc)
+    return retVal
+
+@api_view(['POST'])
+def import_toponims(request, file_name=None):
+    retVal = perform_import(request, file_name, check_file_structure, None, process_line)
+    return retVal
+    # if file_name is None or file_name.strip() == '':
+    #     content = {'status': 'KO', 'detail': 'mandatory param missing'}
+    #     return Response(data=content, status=400)
+    # filepath = UPLOAD_DIR + '/' + file_name
+    # filename = ntpath.basename(os.path.splitext(filepath)[0])
+    # #file_type = magic.from_file(filepath)
+    # file_type = determine_import_file_type(filepath)
+    # if file_type == FILE_TYPE_OTHER:
+    #     content = {'status': 'KO', 'detail': [file_type], 'status_type': 'FILE_TYPE_WRONG'}
+    #     return Response(data=content, status=400)
+    # else: #seems to be text file
+    #     file_array = []
+    #     raw_lines = []
+    #     errors = []
+    #     if file_type == FILE_TYPE_CSV:
+    #         #read file
+    #         with open(filepath) as f:
+    #             raw_lines = f.readlines()
+    #         raw_lines = [x.strip() for x in raw_lines]
+    #         with open(filepath,'rt') as csvfile:
+    #             #dialect = csv.Sniffer().sniff(csvfile.read(1024))
+    #             dialect = csv.Sniffer().sniff(csvfile.readline())
+    #             csvfile.seek(0)
+    #             reader = csv.reader(csvfile,dialect)
+    #             for row in reader:
+    #                 file_array.append(row)
+    #             try:
+    #                 check_file_structure(file_array)
+    #             except NumberOfColumnsException as n:
+    #                 details = n.args[0]
+    #                 msg = "Problema amb l'estructura del fitxer. S'esperaven 16 columnes i se n'han trobat " + details["numcols"] + " a la fila " + details["numrow"]
+    #                 errors.append(msg)
+    #             except EmptyFileException as e:
+    #                 msg = "Sembla que el fitxer té menys de 2 línies"
+    #                 errors.append(msg)
+
+    #             contador_fila = 1
+    #             toponims_exist = []
+    #             toponims_to_create = []
+    #             problems = {}
+    #             if len(errors) == 0:
+    #                 for fila, linia in zip(file_array[1:], raw_lines[1:]):
+    #                     try:
+    #                         process_line(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
+    #                         contador_fila += 1
+    #                     except:
+    #                         e = sys.exc_info()[0]
+    #                         content = {'status': 'KO', 'detail': "%s" % e}
+    #                         return Response(data=content, status=400)
+
+
+    #         if len(errors) > 0:
+    #             content = {'status': 'KO', 'detail': errors}
+    #             return Response(data=content, status=400)
+    #         else:
+    #             for toponim_and_versio in toponims_to_create:
+    #                 t = toponim_and_versio['toponim']
+    #                 v = toponim_and_versio['versio']
+    #                 t.save()
+    #                 v.idtoponim = t
+    #                 v.save()
+    #             success_report = create_success_report(toponims_to_create, toponims_exist)
+    #             filelink = create_result_csv(toponims_to_create, toponims_exist, request)
+    #             content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
+    #             return Response(data=content, status=200)
+    #     if file_type in [FILE_TYPE_EXCEL, FILE_TYPE_EXCEL_03, FILE_TYPE_EXCEL_97]:
+    #         try:
+    #             if 'xlsx' in filepath:
+    #                 df = pd.read_excel(filepath, engine="openpyxl")
+    #             else:
+    #                 df = pd.read_excel(filepath)
+    #         except:
+    #             e = sys.exc_info()[0]
+    #             content = {'status': 'KO', 'detail': "%s" % e}
+    #             return Response(data=content, status=400)
+    #         np_array = df.to_numpy()
+    #         for row in np_array:
+    #             line = [cleanup_excel_line_item(x) for x in row]
+    #             file_array.append(line)
+    #             raw_lines.append(';'.join(line))
+    #         try:
+    #             check_file_structure(file_array)
+    #         except NumberOfColumnsException as n:
+    #             details = n.args[0]
+    #             msg = "Problema amb l'estructura del fitxer. S'esperaven 18 columnes i se n'han trobat " + details["numcols"] + " a la fila " + details["numrow"]
+    #             errors.append(msg)
+    #         except EmptyFileException as e:
+    #             msg = "Sembla que el fitxer té menys de 2 línies"
+    #             errors.append(msg)
+
+    #         contador_fila = 1
+    #         toponims_exist = []
+    #         toponims_to_create = []
+    #         problems = {}
+    #         if len(errors) == 0:
+    #             for fila, linia in zip(file_array, raw_lines):
+    #                 process_line(fila, linia, errors, toponims_exist, toponims_to_create, contador_fila, problems, filename)
+    #                 contador_fila += 1
+
+    #         if len(errors) > 0:
+    #             content = {'status': 'KO', 'detail': errors}
+    #             return Response(data=content, status=400)
+    #         else:
+    #             for toponim_and_versio in toponims_to_create:
+    #                 t = toponim_and_versio['toponim']
+    #                 v = toponim_and_versio['versio']
+    #                 t.save()
+    #                 v.idtoponim = t
+    #                 v.save()
+    #             success_report = create_success_report(toponims_to_create, toponims_exist)
+    #             filelink = create_result_csv(toponims_to_create, toponims_exist, request)
+    #             content = {'status': 'OK', 'detail': file_type, 'results': success_report, 'fileLink': filelink}
+    #             return Response(data=content, status=200)
 
 def create_result_csv(toponims_to_create, toponims_exist, request):
     file_name = str(uuid.uuid4()) + ".csv"

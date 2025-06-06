@@ -5,13 +5,17 @@
     <link href="{% static 'jquery-ui/themes/base/jquery-ui.min.css' %}" rel="stylesheet">
     <link href="{% static 'georef/css/georef.css' %}" rel="stylesheet">
     <link href="{% static 'georef/css/custom_file_input.css' %}" rel="stylesheet">    
+    <style>
+        #collapsed {
+            margin: 10px;
+        }
+    </style>
 {% endblock %}
 {% block extrahead %}
     <script>
         var _ajax_upload_url = "{% url 'ajax_upload' %}";
         var csrf_token = '{{ csrf_token }}';
-        var _import_csv_url = "{% url 'import_toponims' %}";
-        var _url_base_edit_toponim = "{% url 'import_toponims' %}";
+        var _import_csv_url = "{% url 'import_dwc' %}";        
     </script>
 {% endblock %}
 {% block main %}
@@ -21,18 +25,17 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'index' %}">{% trans 'Inici' %}</a></li>
                 <li class="breadcrumb-item">{% trans 'Utilitats' %}</li>
-                <li class="breadcrumb-item active">{% trans 'Importació de topònims' %}</li>
+                <li class="breadcrumb-item active">{% trans 'Importació de topònims format Darwin Core' %}</li>
             </ol>
         </div>
       </div>
         <div class="container separador_seccio">
-            <p><strong>{% trans "Utilitat d'importació de topònims des de CSV" %}:</strong></p>
+            <p><strong>{% trans "Utilitat d'importació de topònims format Darwin Core" %}:</strong></p>
         </div>
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <p>{% trans "Aquesta eina permet importar topònims des d'un fitxer csv." %}</p>
-                    <!--<button data-toggle="tooltip" title="{% trans 'Detalls' %}" id="details" type="button" class="btn btn-primary">{% trans "Explica'm més..." %}</button>-->
+                    <p>{% trans "Aquesta eina permet importar topònims en format Darwin Core des d'un fitxer csv." %}</p>                    
                     <div class="persiana">                        
                         <div class="badge" id="more_info">{% trans "Clica per més informació..." %}</div>
                         <div id="collapsed" class="alert alert-info" style="display: none;">

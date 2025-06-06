@@ -1,0 +1,119 @@
+<p>The import in Darwin Core format supports the following formats:</p>
+<ul>
+    <li>
+        <p>EXCEL: Microsoft Excel file</p>
+    </li>
+    <li>
+        <p>
+            CSV: The file must be a valid CSV, using the ';' symbol as the column separator. It is assumed that the
+            file has a first row with column names, so the first line of the file is never processed. To avoid issues
+            with special characters, the file should be UTF-8 encoded.
+        </p>
+    </li>
+</ul>
+<p>
+    Below is a list of columns that the file must contain. The order is not important, but the column name is.
+    The correct column name is the one shown in parentheses. Required columns are shown in 
+    <span style="color:red;">red</span>; semi-required columns are shown in <span style="color:orangered;">orange</span>
+    depending on the specific site (see field description).
+</p>
+<p>
+<ul>
+    <li style="color:red;">
+        <b>Place name (<a href="https://dwc.tdwg.org/terms/#dwc:locality" target="_blank">locality</a>).</b>
+        <ul>
+            <li>The name of the place must be in the form: [name] - [country] ([site_type]) (Aquàtic|Terrestre).</li>
+            <li>The [name] can be any text string, for example "Calonge de Segarra". It cannot be blank.</li>
+            <li>The [country] is optional. You can specify the name of any country, which must be present in the Country thesaurus. If not, leave it blank.</li>
+            <li>The [site_type] is required. You can specify any value from the site type thesaurus.</li>
+            <li>Finally, indicate whether the place is Aquàtic or Terrestre.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Higher geographies (<a href="https://dwc.tdwg.org/terms/#dwc:higherGeography" target="_blank">higherGeography</a>)</b>
+        <ul>
+            <li>This field is a lineage string of the place name. It is a list of place names separated by the '|' character.
+                The rightmost place name is the one immediately above the one being imported.</li>
+            <li>For example, if importing the place "Calonge de Segarra", the string would be:
+                "Europa -  (continent) (Terrestre) | Espanya - Espanya (estat) (Terrestre) | Catalunya - Espanya (comunitat autònoma) (Terrestre) | Lleida - Catalunya (província) (Terrestre) | Urgell - Espanya (comarca) (Terrestre)", 
+                indicating that "Calonge de Segarra" is located in Anoia.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Version captured from resource (<a href="https://dwc.tdwg.org/terms/#dwc:georeferenceSources" target="_blank">georeferenceSources</a>)</b>
+        <ul>
+            <li>Name of the georeferencing resource used. It must be present in the Resources list.</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Original x coordinate (<a href="https://dwc.tdwg.org/terms/#dwc:verbatimLongitude" target="_blank">verbatimLongitude</a>)</b>
+        <ul>
+            <li>Original x coordinate of the place, in original units (either meters or lat/long).</li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Original y coordinate (<a href="https://dwc.tdwg.org/terms/#dwc:verbatimLatitude" target="_blank">verbatimLatitude</a>)</b>
+        <ul>
+            <li>Original y coordinate of the place, in original units (either meters or lat/long).</li>
+        </ul>
+    </li>
+    <li>
+        <b>Date (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedDate" target="_blank">georeferencedDate</a>)</b>
+        <ul>
+            <li>Date of the georeferencing. A wide range of formats is accepted, but DD/MM/YYYY is recommended (e.g., 03/05/2009).
+                If not specified, field is left blank.
+            </li>
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Georeferencer (<a href="https://dwc.tdwg.org/terms/#dwc:georeferencedBy" target="_blank">georeferencedBy</a>)</b>
+        <ul>
+            <li>Name of the georeferencer, in the form [first_name last_name].</li>
+        </ul>
+    </li>
+    <li>
+        <b>Maximum depth height(m) (<a href="https://dwc.tdwg.org/terms/#dwc:maximumDepthInMeters" target="_blank">maximumDepthInMeters</a>)</b>
+        <ul>
+            <li>Maximum depth, in meters. Decimals are allowed. This field is not mandatory.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Minimum depth height(m) (<a href="https://dwc.tdwg.org/terms/#dwc:minimumDepthInMeters" target="_blank">minimumDepthInMeters</a>)</b>
+        <ul>
+            <li>Minimum depth, in meters. Decimals are allowed. This field is not mandatory.</li>
+        </ul>
+    </li>
+    <li>
+        <b>Observations (<a href="https://dwc.tdwg.org/terms/#dwc:georeferenceRemarks" target="_blank">georeferenceRemarks</a>)</b>
+        <ul>
+            <li>Comments field. Not mandatory.</li>
+        </ul>
+    </li>
+    <li style="color: orangered;">
+        <b>Coordinate uncertainty (m) (<a href="https://dwc.tdwg.org/terms/#dwc:coordinateUncertaintyInMeters" target="_blank">coordinateUncertaintyInMeters</a>)</b>
+        <ul>
+            Coordinate uncertainty in meters around the original coordinate. This field is only mandatory if the geometry is a point.
+            Otherwise, it is calculated based on the geometry's uncertainty radius.
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Place geometry (<a href="https://dwc.tdwg.org/terms/#dwc:footprintWKT" target="_blank">footprintWKT</a>)</b>
+        <ul>
+            Geometry in WKT (well-known text) format of the place. This geometry will be used to calculate the centroid
+            of the place and coordinate uncertainty.
+        </ul>
+    </li>
+    <li style="color:red;">
+        <b>Geometry reference system (<a href="https://dwc.tdwg.org/terms/#dwc:footprintSRS" target="_blank">footprintSRS</a>)</b>
+        <ul>
+            <li>Identifier with the EPSG code of the reference system (e.g., "epsg:4326")</li>
+        </ul>
+    </li>
+</ul>
+</p>
+<p>
+    When loading the file, all rows are checked to ensure there are no errors. If any are found, a window will appear with a list of them, 
+    indicating the problematic line and column. The user must resolve all errors before loading the data. Once the data is loaded, an output report will be displayed 
+    with a list of the added records. The output report can be downloaded in CSV format.
+</p>

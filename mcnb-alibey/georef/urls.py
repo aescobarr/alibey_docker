@@ -75,6 +75,7 @@ urlpatterns = [
     re_path(r'^toponims/list/dwc/$', views.toponims_list_dwc, name='toponims_list_dwc'),
     re_path(r'^toponims/list/xls/$', views.toponims_list_xls, name='toponims_list_xls'),
     re_path(r'^toponims/import/$', views.toponims_import, name='toponims_import'),
+    re_path(r'^toponims/dwc_import/$', views.toponims_dwc_import, name='toponims_dwc_import'),
 
     re_path(r'^recursos$', views.recursos, name='recursos'),
     re_path(r'^recursos/create/$', views.recursos_create, name='recursos_create'),
@@ -113,6 +114,8 @@ urlpatterns = [
     re_path(r'^compute_centroid', views.compute_centroid, name='compute_centroid'),
     re_path(r'^importtoponims/(?P<file_name>[\w.]{0,256})$', views.import_toponims, name='import_toponims'),
     re_path(r'^importtoponims/$', views.import_toponims, name='import_toponims'),
+    re_path(r'^importtoponimsdwc/(?P<file_name>[\w.]{0,256})$', views.import_toponims_dwc, name='import_dwc'),
+    re_path(r'^importtoponimsdwc/$', views.import_toponims_dwc, name='import_dwc'),
     #re_path(r'^toponimstree/(?P<node_id>[\w\-]+)/$', views.toponimstreenode, name='toponimstreenode'),
     re_path(r'^toponimstree/$', views.toponimstreenode, name='toponimstreenode'),
     re_path(r'^statedata/$', views.statedata, name='statedata'),

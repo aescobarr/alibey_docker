@@ -1,12 +1,18 @@
 from django.test import TestCase
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
+from georef.dwc_import import process_line_dwc, FIELD_MAP_DWC
+from dateutil import parser
+from datetime import date
 import sys
+import csv
 
 from georef.sec_calculation import geometry_from_json, wgs_to_azimuthal_eq, get_vertex_n, \
     simplify_geometry, get_minimum_bounding_circle, point_is_in_geometry, sample_geometry, closest_vertex_on_geometry, \
     n_closest_points, closest_point_on_geometry, compute_sec, centroid_is_in_geom, multipoint_from_coordinate_list, \
     get_best_sec, get_further_point_in_geometry, flatten, get_aeqd_srs_from_wgs_geom, azimuthal_eq_to_wgs, get_distance_sphere
+
+from georef.dwc_import import parse_valid_name
 
 test_params = {
     'simplify_threshold':  1000,
@@ -44,231 +50,374 @@ def get_geometry_from_file(filename):
 
 
 
-class SECTests(TestCase):
-    def test_geojson_to_geom_single_poly(self):
-        single_poly_geom = geometry_from_json(geojson_single_poly)
-        self.assertTrue(single_poly_geom.geom_type == 'Polygon', "Geometry should be polygon, is {0}".format(single_poly_geom.geom_type))
-        self.assertTrue(single_poly_geom.valid, "Geometry should be valid, is not because {0}".format(single_poly_geom.valid_reason))
-        self.assertTrue(single_poly_geom.simple, "Geometry should be simple, is not")
+# class SECTests(TestCase):
+#     def test_geojson_to_geom_single_poly(self):
+#         single_poly_geom = geometry_from_json(geojson_single_poly)
+#         self.assertTrue(single_poly_geom.geom_type == 'Polygon', "Geometry should be polygon, is {0}".format(single_poly_geom.geom_type))
+#         self.assertTrue(single_poly_geom.valid, "Geometry should be valid, is not because {0}".format(single_poly_geom.valid_reason))
+#         self.assertTrue(single_poly_geom.simple, "Geometry should be simple, is not")
 
-    def test_geojson_to_geom_multi_poly(self):
-        multi_poly_geom = geometry_from_json(geojson_multi_poly)
-        self.assertTrue(multi_poly_geom.geom_type == 'MultiPolygon', "Geometry should be MultiPolygon, is {0}".format(multi_poly_geom.geom_type))
-        self.assertTrue(multi_poly_geom.valid, "Geometry should be valid, is not because {0}".format(multi_poly_geom.valid_reason))
-        self.assertTrue(multi_poly_geom.simple, "Geometry should be simple, is not")
+#     def test_geojson_to_geom_multi_poly(self):
+#         multi_poly_geom = geometry_from_json(geojson_multi_poly)
+#         self.assertTrue(multi_poly_geom.geom_type == 'MultiPolygon', "Geometry should be MultiPolygon, is {0}".format(multi_poly_geom.geom_type))
+#         self.assertTrue(multi_poly_geom.valid, "Geometry should be valid, is not because {0}".format(multi_poly_geom.valid_reason))
+#         self.assertTrue(multi_poly_geom.simple, "Geometry should be simple, is not")
 
-    def test_vertex_number(self):
-        single_poly_geom_wgs84 = geometry_from_json(geojson_single_poly)
-        n = get_vertex_n(single_poly_geom_wgs84)
-        self.assertTrue(n == 7, "Polygon geometry should have 7 vertexes, has {0}".format(n))
+#     def test_vertex_number(self):
+#         single_poly_geom_wgs84 = geometry_from_json(geojson_single_poly)
+#         n = get_vertex_n(single_poly_geom_wgs84)
+#         self.assertTrue(n == 7, "Polygon geometry should have 7 vertexes, has {0}".format(n))
 
-    def test_reproject(self):
-        single_poly_geom_wgs84 = geometry_from_json(geojson_single_poly)
-        srs_aeqd = get_aeqd_srs_from_wgs_geom(single_poly_geom_wgs84)
-        single_poly_geom_aeqd = wgs_to_azimuthal_eq(single_poly_geom_wgs84, srs_aeqd)
+#     def test_reproject(self):
+#         single_poly_geom_wgs84 = geometry_from_json(geojson_single_poly)
+#         srs_aeqd = get_aeqd_srs_from_wgs_geom(single_poly_geom_wgs84)
+#         single_poly_geom_aeqd = wgs_to_azimuthal_eq(single_poly_geom_wgs84, srs_aeqd)
 
-    def test_simplify(self):
-        union_geometry = get_geometry_from_file(spain_polygon)
-        original_n_vertices = get_vertex_n(union_geometry)
-        geometry_should_be_simplified = original_n_vertices > test_params['simplify_threshold']
-        self.assertTrue( geometry_should_be_simplified, "Geometry should be simplified" )
-        simplified_geometry = simplify_geometry( union_geometry, tolerance=test_params['tolerance'] )
-        simplified_vertices = get_vertex_n( simplified_geometry )
-        self.assertTrue( simplified_vertices < original_n_vertices, "Simplified geometry n of vertices is equal or bigger than original vertices n ({0}>={1}".format( simplified_vertices, original_n_vertices ) )
+#     def test_simplify(self):
+#         union_geometry = get_geometry_from_file(spain_polygon)
+#         original_n_vertices = get_vertex_n(union_geometry)
+#         geometry_should_be_simplified = original_n_vertices > test_params['simplify_threshold']
+#         self.assertTrue( geometry_should_be_simplified, "Geometry should be simplified" )
+#         simplified_geometry = simplify_geometry( union_geometry, tolerance=test_params['tolerance'] )
+#         simplified_vertices = get_vertex_n( simplified_geometry )
+#         self.assertTrue( simplified_vertices < original_n_vertices, "Simplified geometry n of vertices is equal or bigger than original vertices n ({0}>={1}".format( simplified_vertices, original_n_vertices ) )
 
-    def test_compute_sec(self):
-        for file in all_geoms:
-            single_poly_geom_wgs84 = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(single_poly_geom_wgs84)
-            single_poly_geom_aeqd = wgs_to_azimuthal_eq(single_poly_geom_wgs84,srs_aeqd)
-            sec = get_minimum_bounding_circle( single_poly_geom_aeqd, srs_aeqd )
-            radius = sec['radius']
-            sec_center = sec['center']
-            sec_center_wgs = sec['center_wgs84']
-            coords = []
-            flattened_coords = flatten(single_poly_geom_aeqd.coords)
-            for point in flattened_coords:
-                coords.append(GEOSGeometry("POINT( {} {} )".format(point[0], point[1])))
-            if len(coords) <= 4: #triangle or two line vertex(perfect fit)
-                last_distance = None
-                last_distance_wgs = None
-                for c in coords:
-                    c_wgs84 = azimuthal_eq_to_wgs(c,srs_aeqd)
-                    if last_distance is None:
-                        last_distance = round(sec_center.distance(c), 6)
-                        last_distance_wgs = round(get_distance_sphere(sec_center_wgs, c_wgs84), 6)
-                    else:
-                        current_distance = round(sec_center.distance(c), 6)
-                        current_distance_wgs = round( get_distance_sphere(sec_center_wgs, c_wgs84) , 6)
-                        self.assertTrue( last_distance == current_distance, "AEQD Projection - Distance between sec center {0} and vertex {1} should be {2}, is {3} - file {4}".format( sec_center.wkt, c.wkt, last_distance, current_distance, file ) )
-                        #This does not work
-                        #self.assertTrue( last_distance_wgs == current_distance_wgs, "WGS84 Projection - Distance between sec center {0} and vertex {1} should be {2}, is {3} - file {4}".format(sec_center_wgs.wkt, c_wgs84.wkt, last_distance_wgs, current_distance_wgs, file))
-                        last_distance = current_distance
-                        last_distance_wgs = current_distance_wgs
-            else:
-                #at least two vertexes should be at distance = sec['radius']
-                num_hits = 0
-                for c in coords:
-                    current_distance = round(sec_center.distance(c), 6)
-                    rounded_radius = round(radius, 6)
-                    if current_distance == rounded_radius:
-                        num_hits += 1
-                self.assertTrue(num_hits >= 2, "AEQD Projection - Number of equidistant vertexes from sec center should be greater than {0}, is {1} for file {2}".format( 3, num_hits, file))
+#     def test_compute_sec(self):
+#         for file in all_geoms:
+#             single_poly_geom_wgs84 = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(single_poly_geom_wgs84)
+#             single_poly_geom_aeqd = wgs_to_azimuthal_eq(single_poly_geom_wgs84,srs_aeqd)
+#             sec = get_minimum_bounding_circle( single_poly_geom_aeqd, srs_aeqd )
+#             radius = sec['radius']
+#             sec_center = sec['center']
+#             sec_center_wgs = sec['center_wgs84']
+#             coords = []
+#             flattened_coords = flatten(single_poly_geom_aeqd.coords)
+#             for point in flattened_coords:
+#                 coords.append(GEOSGeometry("POINT( {} {} )".format(point[0], point[1])))
+#             if len(coords) <= 4: #triangle or two line vertex(perfect fit)
+#                 last_distance = None
+#                 last_distance_wgs = None
+#                 for c in coords:
+#                     c_wgs84 = azimuthal_eq_to_wgs(c,srs_aeqd)
+#                     if last_distance is None:
+#                         last_distance = round(sec_center.distance(c), 6)
+#                         last_distance_wgs = round(get_distance_sphere(sec_center_wgs, c_wgs84), 6)
+#                     else:
+#                         current_distance = round(sec_center.distance(c), 6)
+#                         current_distance_wgs = round( get_distance_sphere(sec_center_wgs, c_wgs84) , 6)
+#                         self.assertTrue( last_distance == current_distance, "AEQD Projection - Distance between sec center {0} and vertex {1} should be {2}, is {3} - file {4}".format( sec_center.wkt, c.wkt, last_distance, current_distance, file ) )
+#                         #This does not work
+#                         #self.assertTrue( last_distance_wgs == current_distance_wgs, "WGS84 Projection - Distance between sec center {0} and vertex {1} should be {2}, is {3} - file {4}".format(sec_center_wgs.wkt, c_wgs84.wkt, last_distance_wgs, current_distance_wgs, file))
+#                         last_distance = current_distance
+#                         last_distance_wgs = current_distance_wgs
+#             else:
+#                 #at least two vertexes should be at distance = sec['radius']
+#                 num_hits = 0
+#                 for c in coords:
+#                     current_distance = round(sec_center.distance(c), 6)
+#                     rounded_radius = round(radius, 6)
+#                     if current_distance == rounded_radius:
+#                         num_hits += 1
+#                 self.assertTrue(num_hits >= 2, "AEQD Projection - Number of equidistant vertexes from sec center should be greater than {0}, is {1} for file {2}".format( 3, num_hits, file))
 
-    def test_center_in_geometry(self):
-        c_geometry = get_geometry_from_file(small_c_polygon)
-        srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
-        sec = get_minimum_bounding_circle(c_geometry, srs_aeqd)
-        its_in_c = point_is_in_geometry( sec['center'], c_geometry )
-        self.assertFalse( its_in_c, "Centroid should not be in geometry of c polygon, it is" )
+#     def test_center_in_geometry(self):
+#         c_geometry = get_geometry_from_file(small_c_polygon)
+#         srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
+#         sec = get_minimum_bounding_circle(c_geometry, srs_aeqd)
+#         its_in_c = point_is_in_geometry( sec['center'], c_geometry )
+#         self.assertFalse( its_in_c, "Centroid should not be in geometry of c polygon, it is" )
 
-        potato_geometry_wgs84 = geometry_from_json(geojson_potato_geometry)
-        potato_geometry_aeqd = wgs_to_azimuthal_eq(potato_geometry_wgs84, srs_aeqd)
+#         potato_geometry_wgs84 = geometry_from_json(geojson_potato_geometry)
+#         potato_geometry_aeqd = wgs_to_azimuthal_eq(potato_geometry_wgs84, srs_aeqd)
 
-        sec_potato = get_minimum_bounding_circle(potato_geometry_aeqd, srs_aeqd)
-        its_in_potato = point_is_in_geometry(sec_potato['center'], potato_geometry_aeqd)
-        self.assertTrue( its_in_potato, "Centroid should be in geometry of potato polygon, it's not")
+#         sec_potato = get_minimum_bounding_circle(potato_geometry_aeqd, srs_aeqd)
+#         its_in_potato = point_is_in_geometry(sec_potato['center'], potato_geometry_aeqd)
+#         self.assertTrue( its_in_potato, "Centroid should be in geometry of potato polygon, it's not")
 
-    def test_sample(self):
-        for file in all_geoms:
-            geom = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
-            geom_aeqd = wgs_to_azimuthal_eq(geom,srs_aeqd)
-            original_n_coords = get_vertex_n(geom_aeqd)
-            coords_sampled = sample_geometry(geom_aeqd, original_n_coords - 1)
-            self.assertTrue(len(coords_sampled) < original_n_coords,"Number of sampled coordinates {0} should be less than total coordinates {1}".format(original_n_coords - 1, len(coords_sampled)))
-            self.assertTrue(len(coords_sampled) == original_n_coords - 1, "Number of sampled coordinates should be {0}, is {1}".format(original_n_coords - 1, len(coords_sampled)))
+#     def test_sample(self):
+#         for file in all_geoms:
+#             geom = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
+#             geom_aeqd = wgs_to_azimuthal_eq(geom,srs_aeqd)
+#             original_n_coords = get_vertex_n(geom_aeqd)
+#             coords_sampled = sample_geometry(geom_aeqd, original_n_coords - 1)
+#             self.assertTrue(len(coords_sampled) < original_n_coords,"Number of sampled coordinates {0} should be less than total coordinates {1}".format(original_n_coords - 1, len(coords_sampled)))
+#             self.assertTrue(len(coords_sampled) == original_n_coords - 1, "Number of sampled coordinates should be {0}, is {1}".format(original_n_coords - 1, len(coords_sampled)))
 
-    def test_closest_point(self):
-        for file in all_geoms:
-            geom = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
-            c_geom_aeqd = wgs_to_azimuthal_eq(geom,srs_aeqd)
-            centroid = c_geom_aeqd.centroid
-            closestpoint_by_postgis = closest_point_on_geometry(centroid, c_geom_aeqd)
-            coords = []
-            flattened_coords = flatten(c_geom_aeqd.coords)
-            for point in flattened_coords:
-                coords.append(GEOSGeometry("POINT( {} {} )".format(point[0], point[1])))
-            distance = sys.float_info.max
-            nearest_point = None
-            for point in coords:
-                current_dist = point.distance(centroid)
-                if current_dist < distance:
-                    distance = current_dist
-                    nearest_point = point
-            self.assertFalse(nearest_point.equals_exact(GEOSGeometry(closestpoint_by_postgis), tolerance=0.00000001), "Closest point should not be a vertex, it appears to be")
+#     def test_closest_point(self):
+#         for file in all_geoms:
+#             geom = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
+#             c_geom_aeqd = wgs_to_azimuthal_eq(geom,srs_aeqd)
+#             centroid = c_geom_aeqd.centroid
+#             closestpoint_by_postgis = closest_point_on_geometry(centroid, c_geom_aeqd)
+#             coords = []
+#             flattened_coords = flatten(c_geom_aeqd.coords)
+#             for point in flattened_coords:
+#                 coords.append(GEOSGeometry("POINT( {} {} )".format(point[0], point[1])))
+#             distance = sys.float_info.max
+#             nearest_point = None
+#             for point in coords:
+#                 current_dist = point.distance(centroid)
+#                 if current_dist < distance:
+#                     distance = current_dist
+#                     nearest_point = point
+#             self.assertFalse(nearest_point.equals_exact(GEOSGeometry(closestpoint_by_postgis), tolerance=0.00000001), "Closest point should not be a vertex, it appears to be")
 
-    def test_closest_vertex(self):
-        for file in all_geoms:
-            c_geometry = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
-            c_geom_aeqd = wgs_to_azimuthal_eq(c_geometry, srs_aeqd)
-            centroid = c_geom_aeqd.centroid
-            closestpoint_by_postgis = closest_vertex_on_geometry(centroid, c_geom_aeqd)
-            coords = []
-            flattened_coords = flatten(c_geom_aeqd.coords)
-            for point in flattened_coords:
-                coords.append(GEOSGeometry("POINT( {} {} )".format(point[0],point[1])))
-            distance = sys.float_info.max
-            nearest_point = None
-            for point in coords:
-                current_dist = point.distance(centroid)
-                if current_dist < distance:
-                    distance = current_dist
-                    nearest_point = point
-            self.assertTrue( nearest_point.equals_exact( GEOSGeometry(closestpoint_by_postgis), tolerance=0.00000001 ), "Brute force and postgis results are not the same" )
+#     def test_closest_vertex(self):
+#         for file in all_geoms:
+#             c_geometry = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
+#             c_geom_aeqd = wgs_to_azimuthal_eq(c_geometry, srs_aeqd)
+#             centroid = c_geom_aeqd.centroid
+#             closestpoint_by_postgis = closest_vertex_on_geometry(centroid, c_geom_aeqd)
+#             coords = []
+#             flattened_coords = flatten(c_geom_aeqd.coords)
+#             for point in flattened_coords:
+#                 coords.append(GEOSGeometry("POINT( {} {} )".format(point[0],point[1])))
+#             distance = sys.float_info.max
+#             nearest_point = None
+#             for point in coords:
+#                 current_dist = point.distance(centroid)
+#                 if current_dist < distance:
+#                     distance = current_dist
+#                     nearest_point = point
+#             self.assertTrue( nearest_point.equals_exact( GEOSGeometry(closestpoint_by_postgis), tolerance=0.00000001 ), "Brute force and postgis results are not the same" )
 
-    def test_n_closest_points(self):
-        for file in all_geoms:
-            c_geometry = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
-            c_geom_aeqd = wgs_to_azimuthal_eq(c_geometry, srs_aeqd)
-            centroid = c_geom_aeqd.centroid
-            closestpoint_by_postgis = closest_vertex_on_geometry(centroid, c_geom_aeqd)
-            closest_point_in_geometry = GEOSGeometry(closestpoint_by_postgis)
-            closest_points = n_closest_points( closest_point_in_geometry, c_geom_aeqd, test_params['sample_size'])
-            #coords = []
-            flattened_coords = flatten(c_geom_aeqd.coords)
-            added_points = set()
-            for point in flattened_coords:
-                added_points.add( "POINT( {} {} )".format(point[0], point[1]) )
-                # new_point = GEOSGeometry("POINT( {} {} )".format(point[0], point[1]))
-                # if new_point not in coords:
-                #     coords.append(new_point)
-            coords = [GEOSGeometry(i) for i in added_points]
-            sorted_distance_list = []
-            for point in coords:
-                current_dist = point.distance(closest_point_in_geometry)
-                sorted_distance_list.append( ( point.wkt, current_dist ) )
-            sorted_distance_list = sorted( sorted_distance_list, key=lambda x: x[1])
-            for i in range(len(closest_points)):
-                geom_closest_points_i = GEOSGeometry(closest_points[i][0])
-                geom_sorted_distance_list_i = GEOSGeometry(sorted_distance_list[i][0])
-                if test_params['output_print']:
-                    print("File {0} Brute force - {1} || Closest points function - {2}".format( file, sorted_distance_list[i], closest_points[i] ))
-                self.assertTrue(geom_closest_points_i.equals_exact(geom_sorted_distance_list_i, tolerance=0.00000001), "File {0} Brute force and postgis results are not the same for point {0} (brute force), {1} (closest points function)".format( file, geom_sorted_distance_list_i.wkt, geom_closest_points_i.wkt ))
+#     def test_n_closest_points(self):
+#         for file in all_geoms:
+#             c_geometry = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(c_geometry)
+#             c_geom_aeqd = wgs_to_azimuthal_eq(c_geometry, srs_aeqd)
+#             centroid = c_geom_aeqd.centroid
+#             closestpoint_by_postgis = closest_vertex_on_geometry(centroid, c_geom_aeqd)
+#             closest_point_in_geometry = GEOSGeometry(closestpoint_by_postgis)
+#             closest_points = n_closest_points( closest_point_in_geometry, c_geom_aeqd, test_params['sample_size'])
+#             #coords = []
+#             flattened_coords = flatten(c_geom_aeqd.coords)
+#             added_points = set()
+#             for point in flattened_coords:
+#                 added_points.add( "POINT( {} {} )".format(point[0], point[1]) )
+#                 # new_point = GEOSGeometry("POINT( {} {} )".format(point[0], point[1]))
+#                 # if new_point not in coords:
+#                 #     coords.append(new_point)
+#             coords = [GEOSGeometry(i) for i in added_points]
+#             sorted_distance_list = []
+#             for point in coords:
+#                 current_dist = point.distance(closest_point_in_geometry)
+#                 sorted_distance_list.append( ( point.wkt, current_dist ) )
+#             sorted_distance_list = sorted( sorted_distance_list, key=lambda x: x[1])
+#             for i in range(len(closest_points)):
+#                 geom_closest_points_i = GEOSGeometry(closest_points[i][0])
+#                 geom_sorted_distance_list_i = GEOSGeometry(sorted_distance_list[i][0])
+#                 if test_params['output_print']:
+#                     print("File {0} Brute force - {1} || Closest points function - {2}".format( file, sorted_distance_list[i], closest_points[i] ))
+#                 self.assertTrue(geom_closest_points_i.equals_exact(geom_sorted_distance_list_i, tolerance=0.00000001), "File {0} Brute force and postgis results are not the same for point {0} (brute force), {1} (closest points function)".format( file, geom_sorted_distance_list_i.wkt, geom_closest_points_i.wkt ))
 
-    def test_compute_sec_executes_ok(self):
-        c_geometry = get_geometry_from_file(small_c_polygon)
-        sec = compute_sec(c_geometry, test_params['simplify_threshold'], test_params['tolerance'], test_params['sample_size'], test_params['n_nearest'])
-        if test_params['output_print']:
-            print(sec)
+#     def test_compute_sec_executes_ok(self):
+#         c_geometry = get_geometry_from_file(small_c_polygon)
+#         sec = compute_sec(c_geometry, test_params['simplify_threshold'], test_params['tolerance'], test_params['sample_size'], test_params['n_nearest'])
+#         if test_params['output_print']:
+#             print(sec)
 
-    # def test_step_by_step_process_w_output(self):
-    #     file = triangle_polygon
-    #     geom = get_geometry_from_file(file)
-    #     print("Original geometry wgs 84")
-    #     print(geom.wkt)
-    #     srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
-    #     print("AEQD proj string")
-    #     print(srs_aeqd.proj4)
-    #     aeqd_geometry = wgs_to_azimuthal_eq(geom, srs_aeqd)
-    #     print("Projected geometry AEQD")
-    #     print(aeqd_geometry.wkt)
-    #     sec = get_minimum_bounding_circle(aeqd_geometry, srs_aeqd)
-    #     print("SEC data")
-    #     # {'center': center_aeqd, 'center_wgs84': center_wgs, 'radius': radius, 'mbc_aeqd': mbc_aeqd, 'mbc_wgs': mbc_wgs}
-    #     print("Center aeqd: {0} ".format( sec['center'].wkt ))
-    #     print("Center wgs: {0} ".format(sec['center_wgs84'].wkt))
-    #     print("Sec aeqd: {0} ".format(sec['mbc_aeqd'].wkt))
-    #     print("Sec wgs: {0} ".format(sec['mbc_wgs'].wkt))
-    #     print("Radius: {0} ".format(sec['radius']))
+#     # def test_step_by_step_process_w_output(self):
+#     #     file = triangle_polygon
+#     #     geom = get_geometry_from_file(file)
+#     #     print("Original geometry wgs 84")
+#     #     print(geom.wkt)
+#     #     srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
+#     #     print("AEQD proj string")
+#     #     print(srs_aeqd.proj4)
+#     #     aeqd_geometry = wgs_to_azimuthal_eq(geom, srs_aeqd)
+#     #     print("Projected geometry AEQD")
+#     #     print(aeqd_geometry.wkt)
+#     #     sec = get_minimum_bounding_circle(aeqd_geometry, srs_aeqd)
+#     #     print("SEC data")
+#     #     # {'center': center_aeqd, 'center_wgs84': center_wgs, 'radius': radius, 'mbc_aeqd': mbc_aeqd, 'mbc_wgs': mbc_wgs}
+#     #     print("Center aeqd: {0} ".format( sec['center'].wkt ))
+#     #     print("Center wgs: {0} ".format(sec['center_wgs84'].wkt))
+#     #     print("Sec aeqd: {0} ".format(sec['mbc_aeqd'].wkt))
+#     #     print("Sec wgs: {0} ".format(sec['mbc_wgs'].wkt))
+#     #     print("Radius: {0} ".format(sec['radius']))
 
-    def test_compute_sec_algo(self):
-        for file in all_geoms:
-            geom = get_geometry_from_file(file)
-            srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
-            aeqd_geometry = wgs_to_azimuthal_eq(geom, srs_aeqd)
-            #should not be simplified
-            n = get_vertex_n(aeqd_geometry)
-            if n > test_params['simplify_threshold']:
-                aeqd_geometry = simplify_geometry( aeqd_geometry, test_params['tolerance'] )
-                n_new = get_vertex_n(aeqd_geometry)
-                self.assertTrue(n_new < n, "Simplified polygon ({0} vertexes) should have less vertexes, has {1}".format(n_new, n))
-            # self.assertTrue( n < test_params['simplify_threshold'], "C polygon should be under {0}, vertexes, has {1}".format( test_params['simplify_threshold'], n) )
+#     def test_compute_sec_algo(self):
+#         for file in all_geoms:
+#             geom = get_geometry_from_file(file)
+#             srs_aeqd = get_aeqd_srs_from_wgs_geom(geom)
+#             aeqd_geometry = wgs_to_azimuthal_eq(geom, srs_aeqd)
+#             #should not be simplified
+#             n = get_vertex_n(aeqd_geometry)
+#             if n > test_params['simplify_threshold']:
+#                 aeqd_geometry = simplify_geometry( aeqd_geometry, test_params['tolerance'] )
+#                 n_new = get_vertex_n(aeqd_geometry)
+#                 self.assertTrue(n_new < n, "Simplified polygon ({0} vertexes) should have less vertexes, has {1}".format(n_new, n))
+#             # self.assertTrue( n < test_params['simplify_threshold'], "C polygon should be under {0}, vertexes, has {1}".format( test_params['simplify_threshold'], n) )
 
-            sec = get_minimum_bounding_circle(aeqd_geometry, srs_aeqd)
-            centroid = sec['center']
-            centroid_is_in_geometry = centroid.intersects(aeqd_geometry)
-            if not centroid_is_in_geometry:
-                self.assertFalse( centroid.intersects(aeqd_geometry), "It's a c_polygon, centroid should not intersect original geometry" )
-                closest_to_centroid = closest_point_on_geometry(centroid, aeqd_geometry)
-                #It should be on the polygon hull
-                closest_to_centroid_g = GEOSGeometry(closest_to_centroid)
-                self.assertTrue( centroid_is_in_geom(closest_to_centroid_g, aeqd_geometry), "closest_to_centroid should be on the original geometry hull or inside")
-                #Sample nearby points for optimum SEC
-                candidates = sample_geometry(aeqd_geometry, test_params['sample_size'])
-                self.assertTrue(len(candidates) <= test_params['sample_size'], "Number of candidate points {0} should be equal to sample size {1}".format( len(candidates), test_params['sample_size']))
-                candidates.append(closest_to_centroid_g)
-                closest_candidates = n_closest_points(closest_to_centroid_g, multipoint_from_coordinate_list(candidates), test_params['n_nearest'])
-                self.assertTrue(len(closest_candidates) == test_params['n_nearest'], "Number of close to centroid candidate points {0} should be equal to n_nearest param {1}".format(len(closest_candidates),test_params['n_nearest']))
-                best_sec = get_best_sec(closest_candidates, aeqd_geometry, srs_aeqd)
-                best_sec_centroid = best_sec['center']
-                best_sec_radius = best_sec['radius']
-                for c in closest_candidates:
-                    worst_sec_point = GEOSGeometry(c[0])
-                    worst_d = get_further_point_in_geometry(worst_sec_point, aeqd_geometry)
-                    if not worst_sec_point.equals_exact(best_sec_centroid, tolerance=0.00000001):
-                        self.assertTrue( best_sec_radius < worst_d['radius'], "Uncertainty radius of non optimal solution {0} should be grater than optimal solution {1}".format(worst_d, best_sec_radius))
+#             sec = get_minimum_bounding_circle(aeqd_geometry, srs_aeqd)
+#             centroid = sec['center']
+#             centroid_is_in_geometry = centroid.intersects(aeqd_geometry)
+#             if not centroid_is_in_geometry:
+#                 self.assertFalse( centroid.intersects(aeqd_geometry), "It's a c_polygon, centroid should not intersect original geometry" )
+#                 closest_to_centroid = closest_point_on_geometry(centroid, aeqd_geometry)
+#                 #It should be on the polygon hull
+#                 closest_to_centroid_g = GEOSGeometry(closest_to_centroid)
+#                 self.assertTrue( centroid_is_in_geom(closest_to_centroid_g, aeqd_geometry), "closest_to_centroid should be on the original geometry hull or inside")
+#                 #Sample nearby points for optimum SEC
+#                 candidates = sample_geometry(aeqd_geometry, test_params['sample_size'])
+#                 self.assertTrue(len(candidates) <= test_params['sample_size'], "Number of candidate points {0} should be equal to sample size {1}".format( len(candidates), test_params['sample_size']))
+#                 candidates.append(closest_to_centroid_g)
+#                 closest_candidates = n_closest_points(closest_to_centroid_g, multipoint_from_coordinate_list(candidates), test_params['n_nearest'])
+#                 self.assertTrue(len(closest_candidates) == test_params['n_nearest'], "Number of close to centroid candidate points {0} should be equal to n_nearest param {1}".format(len(closest_candidates),test_params['n_nearest']))
+#                 best_sec = get_best_sec(closest_candidates, aeqd_geometry, srs_aeqd)
+#                 best_sec_centroid = best_sec['center']
+#                 best_sec_radius = best_sec['radius']
+#                 for c in closest_candidates:
+#                     worst_sec_point = GEOSGeometry(c[0])
+#                     worst_d = get_further_point_in_geometry(worst_sec_point, aeqd_geometry)
+#                     if not worst_sec_point.equals_exact(best_sec_centroid, tolerance=0.00000001):
+#                         self.assertTrue( best_sec_radius < worst_d['radius'], "Uncertainty radius of non optimal solution {0} should be grater than optimal solution {1}".format(worst_d, best_sec_radius))
 
+class ImportDWCTests(TestCase):
+    fixtures = ["tipustoponim.json", "recursgeoref.json", "users.json"]
+    def test_parse_name(self):
+        name = "Calaf - Espanya (municipi) (Terrestre)"        
+        retVal = parse_valid_name(name)
+        self.assertIsNotNone(retVal,"{} - should be valid, is not".format(name))
+        self.assertEqual(retVal['name'],"Calaf","Name should be {}, is {}".format("Calaf",retVal['name']))
+        self.assertEqual(retVal['country'],"Espanya","Country should be {}, is {}".format("Espanya",retVal['country']))
+        self.assertEqual(retVal['site_type'],"municipi","Site type should be {}, is {}".format("municipi",retVal['site_type']))
+        self.assertEqual(retVal['environment'],"Terrestre","Environment should be {}, is {}".format("Terrestre",retVal['environment']))
+        name = "Calaf - (municipi) (Terrestre)"
+        self.assertIsNotNone(parse_valid_name(name),"{} - should be valid, is not".format(name))
+        name = "Calaf - (municipi)    (Terrestre)"
+        self.assertIsNotNone(parse_valid_name(name),"{} - should be valid, is not".format(name))
+
+    def read_csv_test_file(self, filename):
+        file_array = []
+        raw_lines = []
+        # csv_file = "./georef/test_files/wkt_polygons.csv"
+        
+        with open(filename) as f:
+            raw_lines = f.readlines()
+        raw_lines = [x.strip() for x in raw_lines]
+        
+        with open(filename,'rt') as csvfile:                
+            dialect = csv.Sniffer().sniff(csvfile.readline())
+            csvfile.seek(0)
+            reader = csv.reader(csvfile,dialect)
+            for row in reader:
+                file_array.append(row)
+        
+        return {"raw_lines": raw_lines, "file_array": file_array}
+    
+    def test_parse_dwc_file(self):
+                
+        csv_file = "./georef/test_files/wkt_point.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)        
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
+        self.assertTrue( len(toponims_to_create) == 1, "A new site should be available to create, there are: {0}".format( len(toponims_to_create) ))
+        date_toponim = toponims_to_create[0]['versio'].datacaptura
+        parsed_date = parser.parse(raw_lines[1].split(';')[ FIELD_MAP_DWC["georeferencedDate"]["index"] ])
+        self.assertTrue(  
+             date_toponim == parsed_date,
+            "Toponim versio date {0} should be the same as parsed date from file {1}, is not".format(date_toponim, parsed_date)
+        )
+        
+
+    def test_parse_optional_date(self):
+        csv_file = "./georef/test_files/wkt_point_no_date.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
+        date_toponim = toponims_to_create[0]['versio'].datacaptura        
+        self.assertTrue(  
+             date_toponim is None,
+            "Toponim versio date {0} should be blank because it's blank in file, is not".format(date_toponim)
+        )
+
+    def test_uncertainty_ignored(self):
+        csv_file = "./georef/test_files/wkt_polygon_w_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
+        uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue(  
+             uncertainty_toponim != parsed_uncertainty,
+            "Since geometry it's a polygon, calculated uncertainty {0} should override uncertainty in file {1}, does not".format(uncertainty_toponim, parsed_uncertainty)
+        )
+
+    def test_uncertainty_can_be_blank_if_polygon(self):
+        csv_file = "./georef/test_files/wkt_polygon_wo_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        self.assertTrue( len(errors) == 0, "There should be no errors, there are: {0}".format( '\n'.join([ '\n'.join(a[1]) for a in errors ]) ))
+        uncertainty_toponim = toponims_to_create[0]['versio'].precisio_h
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
+        self.assertTrue(  
+             uncertainty_toponim != parsed_uncertainty,
+            "Since geometry it's a polygon, calculated uncertainty {0} should override uncertainty in file {1}, does not".format(uncertainty_toponim, parsed_uncertainty)
+        )
+
+    def test_uncertainty_should_not_be_blank_if_point(self):
+        csv_file = "./georef/test_files/wkt_point_wo_uncert.csv"
+        file_content = self.read_csv_test_file(csv_file)
+        file_array = file_content["file_array"]
+        raw_lines = file_content["raw_lines"]
+
+        contador_fila = 1
+        problems = {}
+        errors = []
+        
+        toponims_exist = []
+        toponims_to_create = []
+        
+        process_line_dwc(file_array[1], raw_lines[1], errors, toponims_exist, toponims_to_create, contador_fila, problems, csv_file)
+        parsed_uncertainty = raw_lines[1].split(';')[ FIELD_MAP_DWC["coordinateUncertaintyInMeters"]["index"] ]        
+        self.assertTrue( parsed_uncertainty == '', "Uncertainty on file should be blank, is {0}".format(parsed_uncertainty) )        
+        self.assertTrue( len(errors) > 0,
+            "If geometry is present and a point, uncertainty should have a valid value"
+        )

@@ -39,6 +39,8 @@ services:
       # - ./alibey_db/postgres-data:/var/lib/postgresql/data
       - postgres_data:/var/lib/postgresql/data
       - ./alibey_db/backup:/backup
+    ports:
+      - "5432:5432"      
     env_file:
       - ./.env
     environment:
