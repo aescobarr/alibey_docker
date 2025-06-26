@@ -1,6 +1,7 @@
 services:
   api:
     build: ./api
+    restart: always
     env_file:
       - ./.env
     ports:
@@ -9,6 +10,7 @@ services:
       - web
   geoserver:
     build: ./geoserver
+    restart: always
     volumes:
       - ./geoserver/data_dir:${GEOSERVER_DATA_DIR}
       - ./geoserver/backup:/backup
@@ -20,6 +22,7 @@ services:
       - web      
   db:
     build: ./alibey_db
+    restart: always
     volumes:      
       - postgres_data:/var/lib/postgresql/data
       - ./alibey_db/backup:/backup
@@ -29,6 +32,7 @@ services:
       - POSTGRES_PASSWORD=${DJANGO_ADMIN_PASSWORD}
   web:
     build: .
+    restart: always
     working_dir: /public_html    
     ports:
       - 49155:49155
