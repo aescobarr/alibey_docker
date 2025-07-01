@@ -30,7 +30,8 @@ const HttpStatus = require('http-status-codes');
 const winston = require('winston');
 const expressWinston = require('express-winston');
 
-const port = process.env.RUNNING_PORT || 8080;// set our port
+var port;
+process.env.NODE_ENV == 'test' ? port = process.env.RUNNING_PORT_TEST || 8080 : port = process.env.RUNNING_PORT || 8080; 
 
 // ROUTES FOR OUR API
 // =============================================================================
@@ -139,9 +140,9 @@ app.use(limiter);
 
 // START THE SERVER
 // =============================================================================
+console.log('Node env ' + process.env.NODE_ENV);
 app.listen(port);
 console.log('Listening on port ' + port);
-console.log('Node env ' + process.env.NODE_ENV);
 
 
 module.exports = router;
