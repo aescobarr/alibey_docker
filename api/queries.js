@@ -272,7 +272,7 @@ function getTipusToponims(req, res, next) {
 
   q_count.select()
     .then(function(data){      
-      totalRecords = data.count;
+      totalRecords = data[0].count;
     })
     .catch(function(err) {
       console.log(err);
@@ -382,12 +382,13 @@ function getToponimsPartNom(req, res, next) {
   }
       
   q_count.select()
-  .then(function(data) {
-    totalRecords = data.count;
+  .then(function(data) {    
+    totalRecords = data[0].count;
     q.select(columns)
     .then(function(data) {
       res.status(200)
         .json({
+          kk: 25,
           totalRecords: totalRecords,
           success: true,
           recordsReturned: data.length,
