@@ -546,7 +546,7 @@ async function getAuth(req, res, next) {
   const username = params.user;
   const pwd = params.pwd;
   const validate = val.getAuthValidator.validate(req.query);
-
+  
   if (validate.error){
     console.log(validate.error.toString());
     return res.status(403).send({
@@ -554,30 +554,42 @@ async function getAuth(req, res, next) {
       message: 'Error in supplied parameters - ' + validate.error.toString(),
     });
   }
-
-  try {    
-    const authentication = await pg("auth_user").where('username',username).andWhere('password', pwd);    
-    if(authentication==null || authentication.length == 0){
-      res.status(401)
+  if ( process.env.NODE_ENV == 'test' && username == 'test' && pwd == 'test'){
+    console.log("Test auth on")
+    var token = jwt.sign({ id: 99999 }, process.env.SECRET_KEY, {
+      expiresIn: 20, // expires in 20 seconds
+    });
+    console.log("Test token " + token);
+    res.status(200)
       .json({
         success: true,
-        message: 'Authentification failed',
+        message: 'OK',
+        token: token,
       });
-    }else{
-      var token = jwt.sign({ id: authentication.id }, process.env.SECRET_KEY, {
-        expiresIn: 86400, // expires in 24 hours
-      });
-      res.status(200)
+  } else {
+    try {    
+      const authentication = await pg("auth_user").where('username',username).andWhere('password', pwd);    
+      if(authentication==null || authentication.length == 0){
+        res.status(401)
         .json({
           success: true,
-          message: 'OK',
-          token: token,
-        });      
-    }    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }  
-
+          message: 'Authentification failed',
+        });
+      }else{
+        var token = jwt.sign({ id: authentication.id }, process.env.SECRET_KEY, {
+          expiresIn: 86400, // expires in 24 hours
+        });
+        res.status(200)
+          .json({
+            success: true,
+            message: 'OK',
+            token: token,
+          });      
+      }    
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }  
+  }
 }
 
 module.exports = {
