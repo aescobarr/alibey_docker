@@ -44,7 +44,7 @@ describe('GET /toponimspartnom', function() {
   it('authenticates and obtains a valid json web token', function(done) {
     chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
       .get('/auth')
-      .query({ user: process.env.TEST_USER_NAME, pwd: process.env.TEST_USER_PWD })
+      .query({ user: "test", pwd: "test" })
       .end(function(err, res) {
         if (err) {
           console.log(err.stack);
@@ -249,7 +249,7 @@ describe('GET /tipustoponim', function() {
   it('authenticates and obtains a valid json web token', function(done) {
     chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
       .get('/auth')
-      .query({ user: process.env.TEST_USER_NAME, pwd: process.env.TEST_USER_PWD })
+      .query({ user: "test", pwd: "test" })
       .end(function(err, res) {
         if (err) {
           console.log(err.stack);
@@ -345,7 +345,7 @@ describe('GET /toponim', function() {
   it('authenticates and obtains a valid json web token', function(done) {
     chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
       .get('/auth')
-      .query({ user: process.env.TEST_USER_NAME, pwd: process.env.TEST_USER_PWD })
+      .query({ user: "test", pwd: "test" })
       .end(function(err, res) {
         if (err) {
           console.log(err.stack);
