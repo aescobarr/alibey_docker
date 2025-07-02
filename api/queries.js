@@ -325,7 +325,7 @@ function getToponimsPartNom(req, res, next) {
   var startIndex = params.startIndex;
   var query = params.query;
   var totalRecords = 0;
-
+  
   var validate = val.getToponimsPartNomValidator.validate(params);
 
   if (validate.error){
@@ -371,7 +371,9 @@ function getToponimsPartNom(req, res, next) {
     q.where('nom', 'ilike', '%' + query + '%');
   }
 
-  const q_count = pg('toponims_api').count('id');  
+  //const q_count = pg('toponims_api').count('id');  
+  const q_clone = q.clone();  ;  
+  const q_count = pg.count('* as count').from(q_clone.as('subquery'));
 
   if (results && !isNaN(parseInt(results, 10))){
     q.limit(parseInt(results, 10));
@@ -387,8 +389,7 @@ function getToponimsPartNom(req, res, next) {
     q.select(columns)
     .then(function(data) {
       res.status(200)
-        .json({
-          kk: 25,
+        .json({          
           totalRecords: totalRecords,
           success: true,
           recordsReturned: data.length,
