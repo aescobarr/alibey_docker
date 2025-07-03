@@ -19,7 +19,7 @@ const test_limit_params = {
 };
 const limit_params = {  
   windowMs: 1 * 60 * 1000, // 1 minute
-  limit: 20, // each IP can make up to 20 requests per `windowsMs` (1 minute)
+  limit: 400, // each IP can make up to 20 requests per `windowsMs` (1 minute)
   standardHeaders: true, // add the `RateLimit-*` headers to the response
   legacyHeaders: false, // remove the `X-RateLimit-*` headers from the response  
 }
