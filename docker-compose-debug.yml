@@ -1,12 +1,15 @@
 services:
   api:
-    build: ./api    
+    build: 
+      context: ./api    
+      dockerfile: Dockerfile-debug
     volumes:
       - ./api:/home/node/app:z
     env_file:
       - ./.env
     ports:
       - 7000:7000
+      - 9229:9229
     depends_on:
       - web
   geoserver:
