@@ -23,7 +23,11 @@ const limit_params = {
   standardHeaders: true, // add the `RateLimit-*` headers to the response
   legacyHeaders: false, // remove the `X-RateLimit-*` headers from the response  
 }
-const limiter = rateLimit( process.env.NODE_ENV == 'test' ? test_limit_params : limit_params );
+
+var limiter;
+if( process.env.DISABLE_RATE_LIMIT == null || process.env.DISABLE_RATE_LIMIT == "false" ){
+  limiter = rateLimit( process.env.NODE_ENV == 'test' ? test_limit_params : limit_params );
+}
 
 const HttpStatus = require('http-status-codes');
 
@@ -33,43 +37,50 @@ const expressWinston = require('express-winston');
 var port;
 process.env.NODE_ENV == 'test' ? port = process.env.RUNNING_PORT_TEST || 8080 : port = process.env.RUNNING_PORT || 8080; 
 
+//SET UP MIDDLEWARES
+var verify_and_limit;
+var just_limit;
+
+limiter == null ? verify_and_limit = [VerifyToken] : verify_and_limit = [VerifyToken, limiter];
+limiter == null ? just_limit = [] : just_limit = [limiter];
+
 // ROUTES FOR OUR API
 // =============================================================================
 const router = express.Router();// get an instance of the express Router
 
-router.get('/toponimspartnom', [VerifyToken, limiter], db.getToponimsPartNom);
-router.get('/toponimspartnom.htm', [VerifyToken, limiter], db.getToponimsPartNom);
-router.get('/tipustoponim', [VerifyToken, limiter], db.getTipusToponims);
-router.get('/tipustoponim.htm', [VerifyToken, limiter], db.getTipusToponims);
-router.get('/toponimsgeo', [VerifyToken, limiter], db.getToponimsGeo);
-router.get('/toponimsgeo.htm', [VerifyToken, limiter], db.getToponimsGeo);
-router.get('/toponim', [VerifyToken, limiter], db.getToponim);
-router.get('/toponim/:id', [limiter], db.getToponimId);
-router.get('/toponim.htm', [VerifyToken, limiter], db.getToponim);
-router.get('/arbre', [VerifyToken, limiter], db.getArbre);
-router.get('/arbre.htm', [VerifyToken, limiter], db.getArbre);
-router.get('/auth', limiter, db.getAuth);
-router.get('/auth.htm', limiter, db.getAuth);
-router.get('/version',  limiter, db.getVersion);
+router.get('/toponimspartnom', verify_and_limit, db.getToponimsPartNom);
+router.get('/toponimspartnom.htm', verify_and_limit, db.getToponimsPartNom);
+router.get('/tipustoponim', verify_and_limit, db.getTipusToponims);
+router.get('/tipustoponim.htm', verify_and_limit, db.getTipusToponims);
+router.get('/toponimsgeo', verify_and_limit, db.getToponimsGeo);
+router.get('/toponimsgeo.htm', verify_and_limit, db.getToponimsGeo);
+router.get('/toponim', verify_and_limit, db.getToponim);
+router.get('/toponim/:id', just_limit, db.getToponimId);
+router.get('/toponim.htm', verify_and_limit, db.getToponim);
+router.get('/arbre', verify_and_limit, db.getArbre);
+router.get('/arbre.htm', verify_and_limit, db.getArbre);
+router.get('/auth', just_limit, db.getAuth);
+router.get('/auth.htm', just_limit, db.getAuth);
+router.get('/version',  just_limit, db.getVersion);
 
 // ROUTES FOR V1 API
 // =============================================================================
 var router_v1 = express.Router();// get an instance of the express Router
 
-router_v1.get('/sitepartname', [VerifyToken, limiter], db.getToponimsPartNom);
-router_v1.get('/sitepartname.htm', [VerifyToken, limiter], db.getToponimsPartNom);
-router_v1.get('/sitetype', [VerifyToken, limiter], db.getTipusToponims);
-router_v1.get('/sitetype.htm', [VerifyToken, limiter], db.getTipusToponims);
-router_v1.get('/sitegeo', [VerifyToken, limiter], db.getToponimsGeo);
-router_v1.get('/sitegeo.htm', [VerifyToken, limiter], db.getToponimsGeo);
-router_v1.get('/site', [VerifyToken, limiter], db.getToponim);
-router_v1.get('/site/:id', [limiter], db.getToponimId);
-router_v1.get('/site.htm', [VerifyToken, limiter], db.getToponim);
-router_v1.get('/tree', [VerifyToken, limiter], db.getArbre);
-router_v1.get('/tree.htm', [VerifyToken, limiter], db.getArbre);
-router_v1.get('/auth', limiter, db.getAuth);
-router_v1.get('/auth.htm', limiter, db.getAuth);
-router_v1.get('/version', limiter, db.getVersion);
+router_v1.get('/sitepartname', verify_and_limit, db.getToponimsPartNom);
+router_v1.get('/sitepartname.htm', verify_and_limit, db.getToponimsPartNom);
+router_v1.get('/sitetype', verify_and_limit, db.getTipusToponims);
+router_v1.get('/sitetype.htm', verify_and_limit, db.getTipusToponims);
+router_v1.get('/sitegeo', verify_and_limit, db.getToponimsGeo);
+router_v1.get('/sitegeo.htm', verify_and_limit, db.getToponimsGeo);
+router_v1.get('/site', verify_and_limit, db.getToponim);
+router_v1.get('/site/:id', just_limit, db.getToponimId);
+router_v1.get('/site.htm', verify_and_limit, db.getToponim);
+router_v1.get('/tree', verify_and_limit, db.getArbre);
+router_v1.get('/tree.htm', verify_and_limit, db.getArbre);
+router_v1.get('/auth', just_limit, db.getAuth);
+router_v1.get('/auth.htm', just_limit, db.getAuth);
+router_v1.get('/version', just_limit, db.getVersion);
 
 // LOGGING --------------------------------------------
 
@@ -136,7 +147,7 @@ app.use(function(err, req, res, next) {
 });
 
 // RATE LIMITING
-app.use(limiter);
+limiter != null ? app.use(limiter) : console.log("Rate limiting disabled");
 
 // START THE SERVER
 // =============================================================================
