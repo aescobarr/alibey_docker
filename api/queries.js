@@ -5,20 +5,29 @@ require('dotenv').config();
 
 const moment = require('moment');
 const val = require('./validators.js');
+const init_schema = require('./init_schema.js');
 
 const package_json = require('./package.json');
 
-const pg = require('knex')({
-  client: 'pg',
-  connection: {    
-    host: process.env.SQL_HOST,
-    port: process.env.SQL_PORT,
-    user: process.env.SQL_USER,
-    database: process.env.SQL_DATABASE,
-    password: process.env.SQL_PASSWORD,
-    ssl: process.env.DB_SSL ? { rejectUnauthorized: false } : false,
-  },
-});
+var pg;
+if( process.env.NODE_ENV == 'test' ){
+  const { newDb } = require('pg-mem');
+  const mem = newDb();
+  pg = mem.adapters.createKnex();
+  init_schema.initdb(pg);
+}else{
+  pg = require('knex')({
+    client: 'pg',
+    connection: {    
+      host: process.env.SQL_HOST,
+      port: process.env.SQL_PORT,
+      user: process.env.SQL_USER,
+      database: process.env.SQL_DATABASE,
+      password: process.env.SQL_PASSWORD,
+      ssl: process.env.DB_SSL ? { rejectUnauthorized: false } : false,
+    },
+  });
+}
 
 // eslint-disable-next-line no-unused-vars
 function getVersion(req, res, next) {
