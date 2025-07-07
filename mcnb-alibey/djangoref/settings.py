@@ -17,6 +17,9 @@ import django
 from django.utils.translation import gettext
 django.utils.translation.ugettext = gettext
 
+def str_to_bool(value):
+    return value.lower() in ('true', '1', 't', 'yes', 'y')
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,7 +50,7 @@ SECRET_KEY = 'gx%(-$i!e@y9o-xa^=962t*f-ngn-!u+zf)m-$icedw8pzb@&s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # OVERRIDEN IN SETTINGS_LOCAL
-DEBUG = os.environ.get("DEBUG", False)
+DEBUG = str_to_bool(os.environ.get('DEBUG', 'False'))
 
 # OVERRIDEN IN SETTINGS_LOCAL
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","*").split(" ")
