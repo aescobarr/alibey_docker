@@ -768,11 +768,11 @@ class Filtrejson(models.Model):
                         filtre_text.append(_('Poligon'))
                     else:                        
                         model_stats = field_json_to_model_translator(elem['condicio'], self.modul)
-                        if model_stats is None:
-                            filtre_text.append('"' + elem['valor'] + '"')
+                        if model_stats is None:                            
+                            filtre_text.append(f"\" {elem['valor']} \"")
                         else:
-                            readable_value = id_to_text_value(elem['condicio'],elem['valor'], self.modul)
-                            filtre_text.append('"' + readable_value + '"')
+                            readable_value = id_to_text_value(elem['condicio'],elem['valor'], self.modul)                            
+                            filtre_text.append(f"\" {readable_value} \"")
             retval = ' '.join(filtre_text)
         return retval
 
