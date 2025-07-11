@@ -17,6 +17,7 @@ import itertools
 from haversine import haversine
 from django.utils.translation import gettext as _
 from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps
 
 
 # Create your models here.
@@ -668,6 +669,7 @@ def cond_translator(condition):
         'paraulaclau':  _('cond_filtre_paraulaclau'),
         'nomautor':     _('cond_filtre_nomautor'),
         'tipus':        _('cond_filtre_tipus'),
+        'arbre':        _('cond_filtre_arbre'),
         'pais':         _('cond_filtre_pais'),
         'aquatic':      _('cond_filtre_aquatic'),
         'versio':       _('cond_filtre_versio'),
@@ -675,6 +677,69 @@ def cond_translator(condition):
         'geografic_geo': _('cond_filtre_geografic_geo')
     }
     return trans.get(condition, condition)
+
+def field_json_to_model_translator(condition, modul):
+    # modul = RECURSOS | TOPONIMS
+    trans = {
+        'TOPONIMS': {
+            'nomautor': {
+                'model_name': 'Autor',
+                'app_name': 'georef_addenda',
+                'field_name': 'nom'
+            },
+            'paraulaclau': {
+                'model_name': 'Paraulaclau',
+                'app_name': 'georef',
+                'field_name': 'paraula'
+            },
+            'tipus': {
+                'model_name': 'Tipustoponim',
+                'app_name': 'georef',
+                'field_name': 'nom'
+            },
+            'versio': {
+                'model_name': 'Qualificadorversio',
+                'app_name': 'georef',
+                'field_name': 'qualificador'
+            },
+            'pais': {
+                'model_name': 'Pais',
+                'app_name': 'georef',
+                'field_name': 'nom'
+            }
+        },
+        'RECURSOS': {
+            'paraulaclau': {
+                'model_name': 'Paraulaclau',
+                'app_name': 'georef',
+                'field_name': 'paraula'
+            },
+            'tipus': {
+                'model_name': 'Tipusrecursgeoref',
+                'app_name': 'georef',
+                'field_name': 'nom'
+            },
+        }
+    }
+    first_level = trans.get(modul,None)
+    if first_level:
+        return first_level.get(condition, None)
+    else:
+        return None
+
+def id_to_text_value(condition, value, modul):    
+    model_stats = field_json_to_model_translator(condition, modul)
+    if model_stats:
+        model_name = model_stats['model_name']
+        app_name = model_stats['app_name']
+        field_name = model_stats['field_name']
+        model = apps.get_model(app_name,model_name)
+        if modul == 'RECURSOS' and condition == 'paraulaclau':
+            instance = model.objects.get(paraula=value)
+        else:
+            instance = model.objects.get(pk=value)
+        return getattr(instance, field_name)
+    return value
 
 class Filtrejson(models.Model):
     idfiltre = models.CharField(primary_key=True, max_length=100, default=pkgen)
@@ -701,8 +766,13 @@ class Filtrejson(models.Model):
                     filtre_text.append('=')
                     if cond.lower() == cond_translator('geografic') or cond.lower() == cond_translator('geografic_geo'):
                         filtre_text.append(_('Poligon'))
-                    else:
-                        filtre_text.append(elem['valor'])
+                    else:                        
+                        model_stats = field_json_to_model_translator(elem['condicio'], self.modul)
+                        if model_stats is None:
+                            filtre_text.append(elem['valor'])
+                        else:
+                            readable_value = id_to_text_value(elem['condicio'],elem['valor'], self.modul)
+                            filtre_text.append(readable_value)
             retval = ' '.join(filtre_text)
         return retval
 
