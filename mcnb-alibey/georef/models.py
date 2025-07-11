@@ -769,10 +769,10 @@ class Filtrejson(models.Model):
                     else:                        
                         model_stats = field_json_to_model_translator(elem['condicio'], self.modul)
                         if model_stats is None:
-                            filtre_text.append(elem['valor'])
+                            filtre_text.append('"' + elem['valor'] + '"')
                         else:
                             readable_value = id_to_text_value(elem['condicio'],elem['valor'], self.modul)
-                            filtre_text.append(readable_value)
+                            filtre_text.append('"' + readable_value + '"')
             retval = ' '.join(filtre_text)
         return retval
 
