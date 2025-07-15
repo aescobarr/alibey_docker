@@ -47,7 +47,7 @@ $(document).ready(function() {
                 'sortable': false,
                 'render': function(value){
                     if(value==true){
-                        return "<button class=\"delete_button btn btn-danger\">" + gettext('Esborrar') + "</button>";
+                        return "<button class=\"delete_button btn btn-danger\"><i class=\"fa fa-times\" aria-hidden=\"true\"></i></button>";
                     }else{
                         return '&nbsp;';
                     }
