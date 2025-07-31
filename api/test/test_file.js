@@ -14,27 +14,53 @@ var expect = chai.expect;
 chai.use(chaiHttp);
 
 describe('GET /version', function(){
-  it('checks rate limiting header is there', function(done) {
-    chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
-      .get('/version')            
-      .end(function(err, res) {
-        if (err) {
-          console.log(err.stack);
-        }
-        expect(res).to.have.header('ratelimit-policy');        
-        done();
-      });
+  it('checks rate limiting header is there (or not)', function(done) {
+    if( process.env.DISABLE_RATE_LIMIT == null || process.env.DISABLE_RATE_LIMIT == "false" ){
+      chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
+        .get('/version')            
+        .end(function(err, res) {
+          if (err) {
+            console.log(err.stack);
+          }
+          expect(res).to.have.header('ratelimit-policy');        
+          done();
+        });
+    } else {
+      chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
+        .get('/version')            
+        .end(function(err, res) {
+          if (err) {
+            console.log(err.stack);
+          }
+          expect(res).to.not.have.header('ratelimit-policy');
+          done();
+        });
+    }
   });
   it('checks rate limit policy value is correct', function(done) {
-    chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
-      .get('/version')            
-      .end(function(err, res) {
-        if (err) {
-          console.log(err.stack);
-        }
-        assert.equal(res.headers['ratelimit-limit'], '200');
-        done();
-      });
+    if( process.env.DISABLE_RATE_LIMIT == null || process.env.DISABLE_RATE_LIMIT == "false" ){
+      console.log("Rate limit is not disabled");
+      chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
+        .get('/version')            
+        .end(function(err, res) {
+          if (err) {
+            console.log(err.stack);
+          }
+          assert.equal(res.headers['ratelimit-limit'], '200');
+          done();
+        });
+    } else {
+      console.log("Rate limit IS disabled");
+      chai.request('http://127.0.0.1:' + (process.env.RUNNING_PORT_TEST || '8080') + '/api')
+        .get('/version')            
+        .end(function(err, res) {
+          if (err) {
+            console.log(err.stack);
+          }          
+          assert.equal(res.headers['ratelimit-limit'], null);
+          done();
+        });
+    }
   });
 })
 
