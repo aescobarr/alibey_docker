@@ -125,7 +125,7 @@ The Makefile can run in development or production mode. By default, it runs in d
 ```
 ENV=PROD make [target name]
 ```
-Production mode uses the docker-compose.yml file, while development uses docker-compose-debug.yml. The main differences between the modes are that production does not provide a web server. This container is supposed to run behind a production-ready web server (Apache or Nginx) which acts as a reverse proxy. Development on the other hand has an additional service 'nginx' which serves the app locally.
+Production mode uses the docker-compose.yml file, while development uses docker-compose-debug.yml. The debug version allows the django app to be debugged with Visual Studio Code (see following section).
 
 It's easy to replicate the non-make version of any command in the Makefile. For instance, to build the containers in development mode, we would issue the command
 ```
@@ -183,7 +183,7 @@ The development version starts a [debugpy](https://pypi.org/project/debugpy/) in
 
 ### Running in production
 
-In production, Ali-Bey is meant to run behind a production web server (Nginx or Ali-Bey) running as a reverse proxy. By default, the web app spawns a gunicorn server in port 49155. 
+In production, Ali-Bey is meant to run behind a production web server (Nginx or Apache) running as a reverse proxy. By default, the web app spawns a gunicorn server in port 49155. 
 
 ### Programmed tasks
 

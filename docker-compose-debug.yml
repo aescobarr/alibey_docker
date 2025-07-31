@@ -27,15 +27,7 @@ services:
       test: curl --fail -s http://localhost:8080/geoserver || exit 1
       interval: 1m30s
       timeout: 10s
-      retries: 3
-  nginx:
-    build: ./nginx
-    volumes:
-      - static_volume:/public_html/djangoref/static/
-    ports:
-      - 1337:80
-    depends_on:
-      - web
+      retries: 3  
   db:
     build: ./alibey_db
     volumes:
