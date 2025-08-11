@@ -3,18 +3,18 @@
 Ali-Bey is a web application for georeferencing site names, originally created for the Museu de Ciencies Naturals de Barcelona - [MCNB](https://museuciencies.cat/). It allows the storage, indexing and querying of georeferenced site names, including their geometry, and supports multiple versions of the site names. Ali-Bey is built using [Django Python web framework](https://www.djangoproject.com/).
 
 This application was originally written as two separate projects: 
-1. [mcnb-alibey](https://github.com/aescobarr/mcnb-alibey) - The main django app
-1. [mcnb-alibey-api](https://github.com/aescobarr/mcnb-alibey-api) - The API
+1. **[mcnb-alibey](https://github.com/aescobarr/mcnb-alibey)** - The main django app
+1. **[mcnb-alibey-api](https://github.com/aescobarr/mcnb-alibey-api)** - The API
 
 Both these projects have been merged in the present dockerized app, and should be considered **deprecated**.
 
 ## Application structure
 
 The app is composed of several services (see the docker-compose.yml file). If we maintain the docker service names, these are:
-1. web - the django web app. 
-1. db - the postgresql database.
-1. geoserver - a Geoserver instance which supplies most of the Web Map Service capabilities
-1. api - the nodejs API
+1. **web** - the django web app. 
+1. **db** - the postgresql database.
+1. **geoserver** - a Geoserver instance which supplies most of the Web Map Service capabilities
+1. **api** - the nodejs API
 
 ## Getting started
 
@@ -121,7 +121,7 @@ start                          Create and start containers.
 start_u                        Create and start containers without detached mode
 stop                           Stop all containers.
 ```
-The Makefile can run in development or production mode. By default, it runs in development mode. To use production mode, we call make like this:
+The Makefile can run targets in development or production mode. By default, it uses development mode. To use production mode, we call make like this:
 ```
 ENV=PROD make [target name]
 ```
@@ -183,7 +183,51 @@ The development version starts a [debugpy](https://pypi.org/project/debugpy/) in
 
 ### Running in production
 
-In production, Ali-Bey is meant to run behind a production web server (Nginx or Apache) running as a reverse proxy. By default, the web app spawns a gunicorn server in port 49155. 
+In production, Ali-Bey is meant to run behind a production web server (Nginx or Apache) running as a reverse proxy. By default, the web app spawns a gunicorn server in port 49155, geoserver at port 8080 and the API runs at port 7000. 
+
+This is a sample configuration file for how this could be run in a production environment. We use the url http://alibey.example.com as the base address for the app. Then we map the different services to different subdirectories:
+
+- Geoserver would be accessible at http://alibey.example.com/geoserver
+- API would be accessible at http://alibey.example.com/api
+- The /static folder is the django static folder content.
+
+```
+upstream alibey {
+        server 127.0.0.1:49155;
+}
+
+upstream geoserver {
+        server 127.0.0.1:8080;
+}
+
+upstream api {
+        server 127.0.0.1:7000;
+}
+
+server {
+        listen 80;
+        server_name alibey.example.com;
+
+        location /static/ {
+                alias /home/alibey_user/alibey/static_content/;
+        }
+
+        location /geoserver/ {
+                proxy_pass http://geoserver;
+        }
+
+        location /api/ {
+                proxy_pass http://api;
+        }
+
+        location / {
+                proxy_pass http://alibey;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $host;
+                proxy_redirect off;
+        }
+}
+```
 
 ### Programmed tasks
 
@@ -191,17 +235,17 @@ In a production environment, we need to set up a few programmed tasks for the ap
 
 The programmed tasks are available in the /util_scripts folder. The following are backup related and optional:
 
-1. ***backup_database.sh*** - this script backs up the current database and dumps the backup in the folder alibey_db/backup. The file name has the format alibey-[YYYY]-[MM]-[DD]-[HHMM].dmp and is a Postgresql dump done with pg_dump -Fc.
-1. ***restore_database.sh*** - this script restores one of the backups created with the backup script. The script is called like this:
+1. **backup_database.sh** - this script backs up the current database and dumps the backup in the folder alibey_db/backup. The file name has the format alibey-[YYYY]-[MM]-[DD]-[HHMM].dmp and is a Postgresql dump done with pg_dump -Fc.
+1. **restore_database.sh** - this script restores one of the backups created with the backup script. The script is called like this:
     ```
     ./util_scripts/restore_database.sh [db_container_name] [backup_file_name]
     ```
     The db_container_name is the name of the database container, obtained via the command ```docker ps```. It's usually something like 'alibey_docker-db-1'. This script drops the current database and replaces it with the backup.
-1. ***backup_geoserver.sh*** - this script backs up the GeoServer data directory and dumps it in the folder /geoserver/backup. The script is called like this:
+1. **backup_geoserver.sh** - this script backs up the GeoServer data directory and dumps it in the folder /geoserver/backup. The script is called like this:
     ```
     ./util_scripts/backup_geoserver.sh [geoserver_container_name]
     ```
     The file name has the format [YYYY]-[MM]-[DD]-[HHMM]-geoserver-data-dir.tar.gz. To restore the backup stop the docker compose services and replace the geoserver/data_dir folder with the /data_dir folder inside the exploded backup.
 
 The remaining task is not optional, and should be executed regularly:
-1. ***refresh_api_tables.sh*** - this script refreshes the API static tables. These tables contain denormalized site information, and every time it's executed the API data is updated with the latest site data.
+1. **refresh_api_tables.sh** - this script refreshes the API static tables. These tables contain denormalized site information, and every time it's executed the API data is updated with the latest site data.
