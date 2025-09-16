@@ -1,0 +1,61 @@
+# This key tells django to run in debug mode (1) or not (0)
+# Don't run django with DEBUG=1 in production environments!
+DEBUG=False
+# Long, complicated string that django uses internally for things like identifying sessions. Keep it unique.
+SECRET_KEY=foo
+# Hosts which will be allowed to connect to Django
+DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+
+# List of allowed domains for unsafe requests. This maps directly to the Django 
+# setting value CSRF_TRUSTED_ORIGINS (https://docs.djangoproject.com/en/5.2/ref/settings/#csrf-trusted-origins)
+# Can be multiple sites, separated by spaces
+DJANGO_CSRF_TRUSTED_ORIGINS=https://example.com
+
+# Admin user credentials. This user will be created when the container is initialized and you will 
+# be able to use it for administrative purposes
+DJANGO_ADMIN_USER=alibey_admin
+DJANGO_ADMIN_PASSWORD=XXXXXXXXXXX
+DJANGO_ADMIN_EMAIL=alibey_admin@alibey.org
+
+# Regular user credentials. This user also is created when the container is initialized.
+DJANGO_REGULAR_USER=alibey_regular
+DJANGO_REGULAR_PASSWORD=YYYYYYYYYY
+DJANGO_REGULAR_EMAIL=alibey_regular@alibey.org
+
+# Django database engine. Do not change this value
+SQL_ENGINE=django.contrib.gis.db.backends.postgis
+# Name of the app database
+SQL_DATABASE=djangoref
+# Name of the app database owner user (postgres user)
+SQL_USER=aplicacio_georef
+# The password of the database owner user
+SQL_PASSWORD=ZZZZZZZZZZ
+# DB host address. Do not change this value.
+SQL_HOST=db
+# Database running port
+SQL_PORT=5432
+
+# Tomcat admin user
+TOMCAT_USER=admintom
+# Tomcat admin password
+TOMCAT_PASSWORD=TTTTTTTTTTTT
+# Tomcat home
+TOMCAT_DIR=/usr/local/tomcat
+# Geoserver data dir
+GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
+# Geoserver admin user name
+GEOSERVER_ADMIN_USER=some_admin_user
+# Geoserver admin user password
+GEOSERVER_ADMIN_PASSWORD=123456789abc
+# Bing maps API key. If you don't have one, Bing Maps will not work
+BING_MAPS_API_KEY='my_bings_api_key'
+
+# API Stuff
+# Whether the app runs in development mode or not. Affects stuff like logging
+NODE_ENV="development"
+# API running port
+RUNNING_PORT=7000
+# Log level
+LOG_LEVEL="info"
+# If this key is present, rate limit for the API is disabled
+DISABLE_RATE_LIMIT="true"
