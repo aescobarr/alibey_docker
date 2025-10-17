@@ -16,53 +16,35 @@
     djangoRef.Map.osm = new L.TileLayer(
         osmUrl,
         {minZoom: 2, maxZoom: 12, attribution: osmAttrib}
-    );
+    );    
 
-    /*
-    djangoRef.Map.roads = L.gridLayer.googleMutant({
-        type: 'roadmap'
-    });
+    const mapLink = '<a href="http://www.esri.com/">Esri</a>';
+    const wholink = 'i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
 
-    djangoRef.Map.satellite = L.gridLayer.googleMutant({
-        type: 'satellite'
-    });
-
-    djangoRef.Map.terrain = L.gridLayer.googleMutant({
-        type: 'terrain'
-    });
-
-    djangoRef.Map.hybrid = L.gridLayer.googleMutant({
-        type: 'hybrid'
-    });
-    */
-
-    djangoRef.Map.bing = L.tileLayer.bing(
+    djangoRef.Map.esri_world = L.tileLayer(
+        'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 
         {
-            'bingMapsKey':bing_key
+            attribution: '&copy; '+mapLink+', '+wholink,
+            maxZoom: 18,
         }
     );
 
-    djangoRef.Map.bing_road = L.tileLayer.bing(
+    djangoRef.Map.esri_topographic = L.tileLayer(
+        'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 
         {
-            'bingMapsKey':bing_key,
-            'imagerySet':'Road'
+            attribution: '&copy; '+mapLink+', '+wholink,
+            maxZoom: 18,
         }
     );
 
-    djangoRef.Map.bing_road_dark = L.tileLayer.bing(
+    djangoRef.Map.esri_terrain = L.tileLayer(
+        'http://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', 
         {
-            'bingMapsKey':bing_key,
-            'imagerySet':'CanvasDark'
+            attribution: '&copy; '+mapLink+', '+wholink,
+            maxZoom: 18,
         }
     );
-
-    djangoRef.Map.bing_aerial_labels = L.tileLayer.bing(
-        {
-            'bingMapsKey':bing_key,
-            'imagerySet':'AerialWithLabels'
-        }
-    );
-
+    
     djangoRef.Map.overlays = {};
 
     djangoRef.Map.map = null;
@@ -106,15 +88,14 @@
                 layers: {
                     'Open Street Map': djangoRef.Map.osm
                 }
-            }
+            }            
             ,{
-                groupName: 'Microsoft Bing Maps',
+                groupName: 'ESRI Maps',
                 expanded: false,
                 layers: {
-                    'Aerial': djangoRef.Map.bing,
-                    'Aerial+roads': djangoRef.Map.bing_aerial_labels,
-                    'Roads': djangoRef.Map.bing_road,
-                    'Roads dark': djangoRef.Map.bing_road_dark
+                    'World': djangoRef.Map.esri_world,
+                    'Topographic': djangoRef.Map.esri_topographic,
+                    'Terrain': djangoRef.Map.esri_terrain
                 }
             }
         ];
@@ -405,7 +386,8 @@
                 overlay_list.push(k);
             }
         }
-        var base_layers = ['djangoRef.Map.bing','djangoRef.Map.bing_road','djangoRef.Map.bing_road_dark','djangoRef.Map.bing_aerial_labels','djangoRef.Map.osm'];
+        //var base_layers = ['djangoRef.Map.bing','djangoRef.Map.bing_road','djangoRef.Map.bing_road_dark','djangoRef.Map.bing_aerial_labels','djangoRef.Map.osm'];
+        var base_layers = ['djangoRef.Map.osm','djangoRef.Map.esri_world','djangoRef.Map.esri_topographic','djangoRef.Map.esri_terrain'];
         //var base_layers = ['djangoRef.Map.roads','djangoRef.Map.satellite','djangoRef.Map.terrain','djangoRef.Map.hybrid','djangoRef.Map.osm'];
         for( var i = 0; i < base_layers.length; i++){
             if(djangoRef.Map.map && djangoRef.Map.map.hasLayer(eval(base_layers[i]))){
