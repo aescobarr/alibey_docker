@@ -246,7 +246,7 @@ table#toponim_edit tbody tr td ul li{
 }
 
 .imatge_dwc {
-    background: url(/static/georef/css/icon/gbif-dot-org-green-logo.png) no-repeat;
+    background: url(/static/georef/css/icon/dwc16x16.png) no-repeat;
     display: inline-block;
     height: 16px;
     width: 16px;
