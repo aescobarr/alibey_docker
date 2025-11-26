@@ -52,26 +52,26 @@ $(document).ready(function() {
                 'targets':4,
                 'title': gettext('Organització')
             },
-            {
+            /*{
                 'targets': 5,
                 'data': null,
                 'sortable': false,
                 'defaultContent': '<button title="' + gettext('Esborrar usuari') + '" class="delete_button btn btn-danger"><i class="fa fa-times" aria-hidden="true"></i></button>'
-            },
+            },*/
             {
-                'targets': 6,
+                'targets': 5,
                 'data': null,
                 'sortable': false,
                 'defaultContent': '<button title="' + gettext('Editar perfil') + '" class="edit_button btn btn-info"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></button>'
             },
             {
-                'targets': 7,
+                'targets': 6,
                 'data': null,
                 'sortable': false,
                 'defaultContent': '<button title="' + gettext('Canviar password') + '" class="chgpsswd_button btn btn-danger"><i class="fa fa-asterisk"></i></button>'
             },
             {
-                'targets': 8,
+                'targets': 7,
                 'data': null,
                 'sortable': false,
                 'defaultContent': '<button title="' + gettext('Activar/Desactivar usuari') + '" class="lock_button btn btn-danger"><i class="fa fa-lock"></i></button>'
@@ -214,30 +214,7 @@ $(document).ready(function() {
             }
         });
     }
-
-    /*
-    var confirmDialog = function(message,id){
-        $('<div></div>').appendTo('body')
-            .html('<div><h6>'+message+'</h6></div>')
-            .dialog({
-                modal: true, title: gettext('Esborrant usuari...'), zIndex: 10000, autoOpen: true,
-                width: 'auto', resizable: false,
-                buttons: {
-                    Yes: function () {
-                        delete_usuari(id);
-                        $(this).dialog("close");
-                    },
-                    No: function () {
-                        $(this).dialog("close");
-                    }
-                },
-                close: function (event, ui) {
-                    $(this).remove();
-                }
-        });
-    };
-    */
-
+    
     $( '#addUser' ).click(function() {
         var url = _add_user_url;
         window.location.href = url;
