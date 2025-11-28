@@ -8,7 +8,6 @@ geoserver/data_dir/data/
 geoserver/data_dir/demo/
 geoserver/data_dir/gwc/
 geoserver/data_dir/logs/geoserver.log
-mcnb-alibey/uploads/
 mcnb-alibey/camps_dwc.txt
 static_content/
 .env
