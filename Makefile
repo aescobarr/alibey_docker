@@ -28,6 +28,9 @@ help: # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 build: ## Build containers.
 	docker compose $(DOCKER_COMPOSE_FLAGS) build
 
+build_base: ## Build base image for web service.
+	docker build -f Dockerfile.base -t alibey-web-base:latest .
+
 start:  ## Create and start containers.
 	docker compose $(DOCKER_COMPOSE_FLAGS) up -d --force-recreate
 
