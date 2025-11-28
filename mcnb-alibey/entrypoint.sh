@@ -12,6 +12,10 @@ echo "Collecting static resources"
 python3 manage.py collectstatic --noinput
 python3 manage.py migrate
 chown -R www-data:www-data /public_html/djangoref/static/
+if [ -d "/public_html/uploads/" ]; then
+  mkdir -p "/public_html/uploads/"
+fi
+chown -R www-data:www-data /public_html/uploads/
 echo "Creating django users"
 python3 createusers.py
 

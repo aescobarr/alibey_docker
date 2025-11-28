@@ -43,6 +43,7 @@ services:
       - ./.env
     volumes:      
       - ./static_content:/public_html/djangoref/static/
+      - ./media_content:/public_html/uploads/
     depends_on:
       - db
 

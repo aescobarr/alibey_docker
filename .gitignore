@@ -6,10 +6,12 @@ api/env-example
 geoserver/backup/
 geoserver/data_dir/data/
 geoserver/data_dir/demo/
+geoserver/data_dir/legendsamples/
 geoserver/data_dir/gwc/
 geoserver/data_dir/logs/geoserver.log
-mcnb-alibey/uploads/
 mcnb-alibey/camps_dwc.txt
+mcnb-alibey/uploads/
 static_content/
+media_content/
 .env
 notes.txt
