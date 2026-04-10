@@ -249,3 +249,10 @@ The programmed tasks are available in the /util_scripts folder. The following ar
 
 The remaining task is not optional, and should be executed regularly:
 1. **refresh_api_tables.sh** - this script refreshes the API static tables. These tables contain denormalized site information, and every time it's executed the API data is updated with the latest site data.
+
+
+## Authorship
+
+- Authors: Escobar A., Garcia E., Uribe F., and Marcer A.
+- Lead developer: Escobar A.
+- Former developers: Garcia-Font V., Marcer A.
