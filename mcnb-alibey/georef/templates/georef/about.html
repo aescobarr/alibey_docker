@@ -17,7 +17,8 @@
     <div class="container">
         <h3>Ali-Bey <b>v{{ version }}</b></h3>
         {% include current_version_template %}
-        {% trans '<p class="text-justify">Georef és una eina de georeferenciació de topònims, creada originalment per al Museu de Ciències Naturals de Barcelona - <a href="https://museuciencies.cat/" rel="nofollow">MCNB</a>. Permet desar, indexar i consultar topònims, que inclouen geometria, i suporta diverses versions de cadascun dels topònims. Georef està fet amb <a href="https://www.djangoproject.com/" rel="nofollow">Django</a>. L&#39;aplicació disposa d&#39;una API que permet fer consultes sobre les dades. L&#39;API és un projecte separat i es pot trobar <a href="https://github.com/aescobarr/nhc-georef-api">aquí</a>.</p>' %}
+        {% trans "about_text_1" %}
+        <!-- {% trans '<p class="text-justify">Georef és una eina de georeferenciació de topònims, creada originalment per al Museu de Ciències Naturals de Barcelona - <a href="https://museuciencies.cat/" rel="nofollow">MCNB</a>. Permet desar, indexar i consultar topònims, que inclouen geometria, i suporta diverses versions de cadascun dels topònims. Georef està fet amb <a href="https://www.djangoproject.com/" rel="nofollow">Django</a>. L&#39;aplicació disposa d&#39;una API que permet fer consultes sobre les dades. L&#39;API és un projecte separat i es pot trobar <a href="https://github.com/aescobarr/nhc-georef-api">aquí</a>.</p>' %} -->
         <div><h3>{% trans "home_text_1" %}</h3></div>
         <!--<div><h3>La plataforma per a treballs en cartografia i georeferenciació</h3></div>-->
         <div>
@@ -45,13 +46,21 @@
             </p>
         </div>
         <h3>{% trans 'Autors' %}</h3>
+        {% trans 'about_text_2' %}
+        <!--        
+        {% comment %} 
         {% trans '<p class="text-justify"><ul><li>Desenvolupadors: <a href="https://github.com/aescobarr">Agustí Escobar</a> (versió actual), <a href="https://github.com/vg-coder">Victor Garcia</a> (versió inicial)</li></ul><ul><li>Disseny conceptual: <a href="http://www.arnaldmarcer.org/">Arnald Marcer (CREAF)</a>, Francesc Uribe (Museu de Ciències Naturals de Barcelona).</li></ul></p>' %}
         <h3>{% trans 'Com citar el programari' %}</h3>
         {% trans '<p class="text-justify">Marcer A., Escobar A., Garcia V. and Uribe F. (2019) Georef. Github repository <a href="https://github.com/aescobarr/nhc-georef">https://github.com/aescobarr/nhc-georef</a></p>' %}
         <h3>{% trans 'Llicència' %}</h3>
         {% trans '<p class="text-justify">Aquest programari es distribueix amb la llicència <a href="https://www.gnu.org/licenses/gpl-3.0.html" rel="nofollow">GNU General Public License v3.0</a>.</p>' %}
         <h3>{% trans 'Agraïments' %}</h3>
-        {% trans '<p>Moltes gràcies a Miguel Martínez( <a href="https://www.auupa.com/" rel="nofollow">Auupa</a> ) per la seva ajuda integrant el programari a l&#39;infrastructura del <a href="https://museuciencies.cat/espais/mcnb/" rel="nofollow">MCNB</a>.</p>' %}
+        {% trans '<p>Moltes gràcies a Miguel Martínez( <a href="https://www.auupa.com/" rel="nofollow">Auupa</a> ) per la seva ajuda integrant el programari a l&#39;infrastructura del <a href="https://museuciencies.cat/espais/mcnb/" rel="nofollow">MCNB</a>.</p>' %} 
+        {% endcomment %}
+        -->
+        <h3>{% trans 'Com citar aquest software' %}</h3>
+        {% trans 'about_text_3' %}
+
     </div>
 </main>
 {% endblock %}

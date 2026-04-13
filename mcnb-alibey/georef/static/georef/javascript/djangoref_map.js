@@ -10,12 +10,12 @@
 
     if (typeof djangoRef.Map === 'undefined') this.djangoRef.Map = {};
 
-    var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';    
     var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
 
     djangoRef.Map.osm = new L.TileLayer(
         osmUrl,
-        {minZoom: 2, maxZoom: 12, attribution: osmAttrib}
+        {minZoom: 2, maxZoom: 12, attribution: osmAttrib, referrerPolicy: 'strict-origin'}
     );    
 
     const mapLink = '<a href="http://www.esri.com/">Esri</a>';
