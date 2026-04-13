@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-11 11:28+0200\n"
+"POT-Creation-Date: 2026-04-13 09:08+0200\n"
 "PO-Revision-Date: 2019-11-18 09:39+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -257,7 +257,7 @@ msgstr ""
 "tesaure d'autors automàticament."
 
 #: georef/templates/georef/_recursos_fields.html:60
-#: georef/templates/georef/about.html:47 georef/templates/georef/base.html:75
+#: georef/templates/georef/about.html:48 georef/templates/georef/base.html:75
 msgid "Autors"
 msgstr "Autors recursos"
 
@@ -401,6 +401,17 @@ msgid "Sobre"
 msgstr ""
 
 #: georef/templates/georef/about.html:20
+msgid "about_text_1"
+msgstr ""
+"<p class=\"text-justify\">Ali-Bey és una eina de georeferenciació de "
+"topònims, creada originalment per al Museu de Ciències Naturals de Barcelona "
+"- <a href=\"https://museuciencies.cat/\" rel=\"nofollow\">MCNB</a>. Permet "
+"desar, indexar i consultar topònims, que inclouen geometria, i suporta "
+"diverses versions de cadascun dels topònims. Ali-Bey està fet amb <a "
+"href=\"https://www.djangoproject.com/\" rel=\"nofollow\">Django</a>. L&#39;"
+"aplicació disposa d&#39;una API que permet fer consultes sobre les dades.</p>"
+
+#: georef/templates/georef/about.html:21
 msgid ""
 "<p class=\"text-justify\">Georef és una eina de georeferenciació de "
 "topònims, creada originalment per al Museu de Ciències Naturals de Barcelona "
@@ -422,11 +433,11 @@ msgstr ""
 "L&#39;API és un projecte separat i es pot trobar <a href=\"https://github."
 "com/aescobarr/nhc-georef-api\">aquí</a>.</p>"
 
-#: georef/templates/georef/about.html:21
+#: georef/templates/georef/about.html:22
 msgid "home_text_1"
 msgstr "La plataforma per a treballs en cartografia i georeferenciació"
 
-#: georef/templates/georef/about.html:25
+#: georef/templates/georef/about.html:26
 msgid "home_text_2"
 msgstr ""
 "La cartografia està present en gairebé tots els àmbits d’activitat del "
@@ -436,7 +447,7 @@ msgstr ""
 "de Ciències Naturals de Barcelona. Avui dia ja és una eina compartida per "
 "altres institucions."
 
-#: georef/templates/georef/about.html:29
+#: georef/templates/georef/about.html:30
 msgid "home_text_3"
 msgstr ""
 "Un projecte especialment actiu en museus d'història natural és la "
@@ -447,72 +458,67 @@ msgstr ""
 "posicionament respecte topònims en un punt de coordenades sobre un mapa és "
 "l’acció de qualitat que definim com a georeferenciació."
 
-#: georef/templates/georef/about.html:33
+#: georef/templates/georef/about.html:34
 msgid "home_text_4"
 msgstr "Desar la traça d’aquestes estimacions de georeferenciació permet:"
 
-#: georef/templates/georef/about.html:36
+#: georef/templates/georef/about.html:37
 msgid "home_text_4_1"
 msgstr ""
 "la reutilització posterior de les dades per augmentar l’eficiència de la "
 "georeferenciació."
 
-#: georef/templates/georef/about.html:38
+#: georef/templates/georef/about.html:39
 msgid "home_text_4_2"
 msgstr ""
 "garanteix la coherència entre si de les dades de localització de les mostres "
 "de col·leccions."
 
-#: georef/templates/georef/about.html:40
+#: georef/templates/georef/about.html:41
 msgid "home_text_4_3"
 msgstr "eventualment permet revisar la qualitat de la pròpia georeferenciació."
 
-#: georef/templates/georef/about.html:43
+#: georef/templates/georef/about.html:44
 msgid "home_text_5"
 msgstr "La georeferenciació de col·leccions és un projecte capital a Ali-Bey."
 
-#: georef/templates/georef/about.html:48
-msgid ""
-"<p class=\"text-justify\"><ul><li>Desenvolupadors: <a href=\"https://github."
-"com/aescobarr\">Agustí Escobar</a> (versió actual), <a href=\"https://github."
-"com/vg-coder\">Victor Garcia</a> (versió inicial)</li></ul><ul><li>Disseny "
-"conceptual: <a href=\"http://www.arnaldmarcer.org/\">Arnald Marcer (CREAF)</"
-"a>, Francesc Uribe (Museu de Ciències Naturals de Barcelona).</li></ul></p>"
-msgstr ""
-
 #: georef/templates/georef/about.html:49
-msgid "Com citar el programari"
+msgid "about_text_2"
+msgstr ""
+"<p class=\"text-justify\">"
+"<ul>"
+"<li>Autors:"
+" <a href=\"https://recerca.uoc.edu/investigadores/882562/detalle?lang=en\">Escobar A.</a>,"
+" <a href=\"https://recerca.uoc.edu/investigadores/882562/detalle?lang=en\">Garcia-Font V.</a>,"
+" Eulàlia Garcia (Museu de Ciències Naturals de Barcelona),"
+" Francesc Uribe (Museu de Ciències Naturals de Barcelona),"
+" <a href=\"https://www.creaf.cat/en/about-us/our-people/arnald-marcer-batlle\">Arnald Marcer (CREAF)</a>"
+"</li>"
+"</ul>"
+"<ul>"
+"<li>Desenvolupador en cap:"
+" Agustí Escobar (<a href=\"https://github.com/aescobarr\">GitHub</a>)"
+"</li>"
+"</ul>"
+"<ul>"
+"<li>Ex-desenvolupadors:"
+" Víctor Garcia-Font (<a href=\"https://github.com/vg-coder\">GitHub</a>),"
+" Arnald Marcer (<a href=\"https://github.com/arnaldmarcer\">GitHub</a>)"
+"</li>"
+"</ul>"
+"</p>"
+
+#: georef/templates/georef/about.html:62
+msgid "Com citar aquest software"
 msgstr ""
 
-#: georef/templates/georef/about.html:50
-msgid ""
-"<p class=\"text-justify\">Marcer A., Escobar A., Garcia V. and Uribe F. "
-"(2019) Georef. Github repository <a href=\"https://github.com/aescobarr/nhc-"
-"georef\">https://github.com/aescobarr/nhc-georef</a></p>"
+#: georef/templates/georef/about.html:63
+msgid "about_text_3"
 msgstr ""
-
-#: georef/templates/georef/about.html:51
-msgid "Llicència"
-msgstr ""
-
-#: georef/templates/georef/about.html:52
-msgid ""
-"<p class=\"text-justify\">Aquest programari es distribueix amb la llicència "
-"<a href=\"https://www.gnu.org/licenses/gpl-3.0.html\" rel=\"nofollow\">GNU "
-"General Public License v3.0</a>.</p>"
-msgstr ""
-
-#: georef/templates/georef/about.html:53
-msgid "Agraïments"
-msgstr ""
-
-#: georef/templates/georef/about.html:54
-msgid ""
-"<p>Moltes gràcies a Miguel Martínez( <a href=\"https://www.auupa.com/\" "
-"rel=\"nofollow\">Auupa</a> ) per la seva ajuda integrant el programari a "
-"l&#39;infrastructura del <a href=\"https://museuciencies.cat/espais/mcnb/\" "
-"rel=\"nofollow\">MCNB</a>.</p>"
-msgstr ""
+"<ul>"
+"<li>Escobar A., Garcia-Font V., Garcia E., Uribe F., and Marcer A. (2026) Ali-Bey - An open collaborative georeferencing web application. Github repository: <a href=\"https://github.com/aescobarr/alibey_docker\">https://github.com/aescobarr/alibey_docker</a></li>"
+"<li>Marcer A., Escobar A., Garcia-Font V. and Uribe F. (2022). Ali-Bey - an open collaborative georeferencing web application. Biodiversity Data Journal 10: e71422. <a href=\"https://doi.org/10.3897/BDJ.10.e81282\">https://doi.org/10.3897/BDJ.10.e81282</a></li>"
+"</ul>"
 
 #: georef/templates/georef/base.html:54
 #: georef/templates/georef/toponim_create.html:37

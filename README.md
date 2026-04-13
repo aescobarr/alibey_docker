@@ -1,4 +1,18 @@
 # Ali-Bey
+**An open collaborative georeferencing web application**
+
+- Authors: Escobar A., Garcia-Font V., Garcia E., Uribe F., and Marcer A.
+- Lead developer: Escobar A.
+- Former developers: Garcia-Font V., Marcer A.
+
+---
+
+**Citation**:  
+- Escobar A., Garcia-Font V., Garcia E., Uribe F., and Marcer A. (2026) 
+Ali-Bey - An open collaborative georeferencing web application. Github repository:  https://github.com/aescobarr/alibey_docker  
+- Marcer A., Escobar A., Garcia-Font V. and Uribe F. (2022). Ali-Bey - an open collaborative georeferencing web application. Biodiversity Data Journal 10        
+
+---
 
 Ali-Bey is a web application for georeferencing site names, originally created for the Museu de Ciencies Naturals de Barcelona - [MCNB](https://museuciencies.cat/). It allows the storage, indexing and querying of georeferenced site names, including their geometry, and supports multiple versions of the site names. Ali-Bey is built using [Django Python web framework](https://www.djangoproject.com/).
 
@@ -250,9 +264,3 @@ The programmed tasks are available in the /util_scripts folder. The following ar
 The remaining task is not optional, and should be executed regularly:
 1. **refresh_api_tables.sh** - this script refreshes the API static tables. These tables contain denormalized site information, and every time it's executed the API data is updated with the latest site data.
 
-
-## Authorship
-
-- Authors: Escobar A., Garcia E., Uribe F., and Marcer A.
-- Lead developer: Escobar A.
-- Former developers: Garcia-Font V., Marcer A.
